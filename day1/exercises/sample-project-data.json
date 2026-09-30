@@ -1,0 +1,35 @@
+{
+  "name": "Nirman Gateway",
+  "city": "Bengaluru",
+  "budget": 50000000,
+  "towers": [
+    {
+      "name": "Tower A",
+      "floors": 12,
+      "engineer": "Vikram",
+      "units": [
+        {
+          "unitNo": "101",
+          "rooms": [
+            { "name": "Living Room", "status": "completed" },
+            { "name": "Bedroom", "status": "in-progress" },
+            { "name": "Kitchen", "status": "pending" }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Tower B",
+      "floors": 10,
+      "engineer": "Kiran",
+      "units": [
+        {
+          "unitNo": "201",
+          "rooms": [
+            { "name": "Living Room", "status": "in-progress" }
+          ]
+        }
+      ]
+    }
+  ]
+}

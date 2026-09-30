@@ -1,0 +1,184 @@
+================================================================================
+NIRMANIQ FULL-STACK INTERN TRAINING PROGRAM
+DAY 1: JAVASCRIPT ARCHITECTURE & FUNDAMENTALS FOR PYTHON ENGINEERS
+Author: Penumuru Madhu Sudhan Reddy | Program: NirmanIQ 90-Day Full-Stack
+================================================================================
+
+CORE OBJECTIVE:
+Transition your mental model from Python's synchronous, class-based, interpreter 
+environment into JavaScript's prototype-based, lexical, weakly-typed runtime 
+(V8 Engine). Understand why JavaScript works the way it does under the hood.
+
+================================================================================
+1. RUNTIME ENGINE ARCHITECTURE: CPYTHON vs GOOGLE V8
+================================================================================
+- Python (CPython):
+  Source code -> Bytecode (.pyc) -> CPython Virtual Machine loop (interprets 
+  opcode one by one).
+  Strongly Dynamic: Types are checked at runtime. Python will never convert 
+  incompatible types silently (e.g., 1 + "2" raises TypeError).
+  Memory managed via reference counting + cycle-detecting garbage collector.
+
+- JavaScript (Google V8 Engine):
+  Source code -> Parser -> AST -> Ignition (Interpreter) generates bytecode -> 
+  TurboFan (JIT Compiler) compiles hot functions directly into optimized machine code.
+  Weakly Dynamic: Types are coerced implicitly. The engine tries to "forgive" 
+  mismatches (e.g., 1 + "2" = "12", "5" - 2 = 3).
+  Memory split between Stack (primitives, pointers) and Heap (dynamic objects, arrays).
+
+================================================================================
+2. THE PROTOTYPE CHAIN: HOW JAVASCRIPT OOP ACTUALLY WORKS
+================================================================================
+In Python, classes are actual blueprint structures, and objects are instances 
+instantiated from class molds.
+
+In JavaScript, even though ES6 introduced the 'class' keyword, IT IS PURELY 
+SYNTACTIC SUGAR over prototype delegation.
+Under the hood:
+- Every object has a hidden internal link called [[Prototype]] (accessed via .__proto__).
+- When accessing obj.prop, if prop is not found on obj, V8 looks up obj.__proto__.
+- If not there, it checks obj.__proto__.__proto__, all the way up to Object.prototype.
+- If it reaches null without finding it, it returns undefined.
+
+Code Example:
+    class Tower {
+      constructor(name) { this.name = name; }
+      inspect() { return `Inspecting ${this.name}`; }
+    }
+    const t = new Tower("Tower A");
+    console.log(t.hasOwnProperty("inspect")); // false (lives on Tower.prototype!)
+    console.log(t.__proto__ === Tower.prototype); // true
+
+================================================================================
+3. THE 'THIS' KEYWORD vs PYTHON 'SELF'
+================================================================================
+The #1 confusion point for Python developers:
+- In Python: 'self' is explicitly declared in method signatures and is permanently 
+  bound to the instance.
+- In JavaScript: 'this' is an implicit parameter determined by HOW the function 
+  is called at runtime (call-site), NOT where it was written.
+
+Four Binding Rules:
+1. Default Binding: standaloneFunction() -> points to global / window (undefined in strict).
+2. Implicit Binding: project.getDetails() -> points to object before the dot (project).
+3. Explicit Binding: fn.call(customObj) -> points to customObj.
+4. Arrow Function Binding: () => {} -> Has NO 'this' of its own! Lexically inherits 
+   'this' from the enclosing outer scope (exactly like Python's self).
+
+Code Example (The 'this' Loss Bug & The Arrow Function Fix):
+    const project = {
+      name: "Sobha Ivory",
+      logLater() {
+        // BUG: Standard callback loses 'this' when executed later:
+        setTimeout(function() {
+          console.log("Bug:", this ? this.name : undefined);
+        }, 100);
+
+        // FIX: Arrow function captures 'this' from logLater's enclosing scope:
+        setTimeout(() => {
+          console.log("Fixed:", this.name);
+        }, 200);
+      }
+    };
+    project.logLater();
+    // Output:
+    // Bug: undefined
+    // Fixed: Sobha Ivory
+
+================================================================================
+4. CLOSURES & LEXICAL SCOPE
+================================================================================
+A closure is a function bundled together with references to its lexical environment.
+A function remembers the variables from its outer scope even after the outer 
+function has finished executing and returned.
+
+Why Closures Matter at NirmanIQ:
+1. React Hooks: useState() and useEffect() rely entirely on closures to persist 
+   component state across renders.
+2. Data Privacy: Encapsulating internal counters and metrics safely.
+3. Factory Functions: Generating specialized calculation functions for construction data.
+
+Code Example:
+    function createInspectionTracker(siteName) {
+      let issuesCount = 0; // Private state protected from outside modification
+
+      return {
+        reportIssue(description) {
+          issuesCount++;
+          return `[${siteName}] Reported: ${description} (Total: ${issuesCount})`;
+        },
+        getSummary() {
+          return `${siteName} has ${issuesCount} open issue(s).`;
+        }
+      };
+    }
+
+    const siteA = createInspectionTracker("Tower A");
+    console.log(siteA.reportIssue("Cracked beam"));
+    console.log(siteA.reportIssue("Missing rebar"));
+    console.log(siteA.getSummary());
+    // Output:
+    // [Tower A] Reported: Cracked beam (Total: 1)
+    // [Tower A] Reported: Missing rebar (Total: 2)
+    // Tower A has 2 open issue(s).
+
+================================================================================
+5. VARIABLE SCOPING: CONST vs LET vs VAR & HOISTING
+================================================================================
+- const: Block-scoped. Cannot be reassigned. Hoisted into Temporal Dead Zone (TDZ).
+  DEFAULT CHOICE for 90% of code. Note: Shallow immutability - properties of an 
+  object or elements of an array can still be mutated via push() or prop assignment.
+- let: Block-scoped. Reassignable. Use only when values must mutate (counters, flags).
+- var: Function-scoped. Hoisted and initialized to undefined. Leaks outside blocks.
+  STRICTLY FORBIDDEN at NirmanIQ.
+
+================================================================================
+6. CRITICAL DATA TYPE TRAPS FOR PYTHON DEVELOPERS
+================================================================================
+TRAP 1: Empty Arrays [] and Empty Objects {} are TRUTHY!
+  In Python: bool([]) == False and bool({}) == False (relied upon everywhere).
+  In JavaScript: ALL objects and arrays are truthy pointers! Boolean([]) === true!
+  CORRECT CHECK:
+    if (arr.length === 0) { /* array is empty */ }
+    if (Object.keys(obj).length === 0) { /* object is empty */ }
+
+TRAP 2: Negative Modulo % Does Not Wrap Around
+  In Python: -1 % 5 returns 4.
+  In JavaScript: -1 % 5 returns -1.
+  Safe circular index: const safeIndex = ((i % n) + n) % n;
+
+TRAP 3: Strict Equality (===) vs Loose Equality (==)
+  Never use '=='! It coerces types unpredictably (e.g. 0 == "" is true, false == "0" is true).
+  Always use '===' and '!=='.
+
+TRAP 4: null vs undefined
+  - undefined: Variable declared in memory but has no assigned value.
+  - null: Explicit developer assignment indicating intentional absence of value.
+
+TRAP 5: Number Precision (IEEE-754 Float64)
+  All numbers in JS are 64-bit binary floats.
+  0.1 + 0.2 === 0.30000000000000004.
+  Always calculate financial budgets using integer paise/cents or specialized libraries.
+
+================================================================================
+7. DESTRUCTURING: ARRAYS & OBJECTS
+================================================================================
+Essential for React component props and state management:
+    const project = { title: "Tower A", floors: 16, client: "Sobha" };
+    // Basic extraction with fallback default:
+    const { title, floors, budget = 5000000 } = project;
+    // Renaming during destructuring:
+    const { title: projectName } = project;
+    // Array destructuring:
+    const [firstTower, secondTower, ...rest] = ["T1", "T2", "T3", "T4"];
+
+================================================================================
+8. FUNCTIONAL ARRAY METHODS (REPLACING PYTHON COMPREHENSIONS)
+================================================================================
+- .map(fn):     [fn(x) for x in list] -> Transforms each item.
+- .filter(fn):  [x for x in list if fn(x)] -> Keeps matching items.
+- .reduce(fn):  functools.reduce() -> Accumulates to single result (sum, object).
+- .find(fn):    next(x for x in list if fn(x)) -> Finds first match.
+- .some(fn):    any(fn(x) for x in list) -> Checks if at least one matches.
+- .every(fn):   all(fn(x) for x in list) -> Checks if all match.
+================================================================================
