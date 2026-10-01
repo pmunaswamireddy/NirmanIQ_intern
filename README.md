@@ -92,7 +92,7 @@ node day2/exercises/exercise-3-task-queue.js
   **Completed Folder:** [`day1/`](day1/)
   </details>
 
-- [ ] **Day 2 — Async JavaScript & the Event Loop**
+- [x] **Day 2 — Async JavaScript & the Event Loop**
   <details open>
   <summary>View Syllabus</summary>
 

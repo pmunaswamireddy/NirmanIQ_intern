@@ -1,0 +1,204 @@
+================================================================================
+NIRMANIQ FULL-STACK INTERN TRAINING PROGRAM
+DAY 2: ASYNCHRONOUS JAVASCRIPT, EVENT LOOP MECHANICS & CONCURRENCY
+Author: Penumuru Madhu Sudhan Reddy | Program: NirmanIQ 90-Day Full-Stack
+================================================================================
+
+CORE OBJECTIVE:
+Understand why JavaScript runs on a single main thread, how it handles 
+asynchronous operations (timers, file I/O, network requests) without freezing 
+the user interface, and master the progression from Callbacks to Promises and 
+async/await.
+
+================================================================================
+1. SYNCHRONOUS VS ASYNCHRONOUS EXECUTION
+================================================================================
+JavaScript is a single-threaded language, meaning it has only one Call Stack and 
+can execute only one line of code at any given instant.
+
+- SYNCHRONOUS CODE:
+  Executes line-by-line in strict sequence. Each operation must completely finish 
+  before the next line can begin. If a network request takes 5 seconds, a synchronous 
+  thread would completely freeze for 5 seconds.
+
+- ASYNCHRONOUS CODE:
+  Initiates a long-running background task (network request, database query, timer) 
+  and immediately proceeds to the next line without blocking. When the background 
+  task finishes, its callback is scheduled to run.
+
+Example:
+--------------------------------------------------------------------------------
+console.log("1. Program starts");
+
+setTimeout(() => {
+  console.log("2. Timer finished (runs 2 seconds later)");
+}, 2000);
+
+console.log("3. Program continues immediately!");
+--------------------------------------------------------------------------------
+Terminal Output:
+1. Program starts
+3. Program continues immediately!
+2. Timer finished (runs 2 seconds later)
+
+================================================================================
+2. THE EVENT LOOP UNDER THE HOOD
+================================================================================
+To coordinate non-blocking operations, the JavaScript runtime (in Browser and Node.js) 
+uses the Event Loop architecture composed of 4 key components:
+
+1. CALL STACK (LIFO - Last In, First Out):
+   Where JavaScript functions are placed and executed. When a function finishes, 
+   it is popped off the stack.
+
+2. BACKGROUND WORKERS (Browser Web APIs / Node.js libuv):
+   Handles timers, DNS resolution, network downloads, and file system I/O 
+   outside of the main JavaScript thread.
+
+3. TASK QUEUES (FIFO - First In, First Out):
+   - Microtask Queue (HIGH PRIORITY): Holds Promise callbacks (.then, .catch, .finally) 
+     and async/await continuations. Drained completely before any Macrotask.
+   - Macrotask Queue (Callback Queue): Holds setTimeout, setInterval, and I/O callbacks.
+
+4. EVENT LOOP MONITOR:
+   Continuously checks: "Is the Call Stack empty?"
+   - If YES and Microtask Queue has tasks -> Run all Microtasks first.
+   - If YES and Microtasks are empty -> Run the next Macrotask.
+   - If NO -> Wait for the Call Stack to finish.
+
+Execution Flow:
+Call Stack -> Background Worker -> Microtask/Macrotask Queue -> Call Stack
+
+================================================================================
+3. EVOLUTION: CALLBACKS -> PROMISES -> ASYNC/AWAIT
+================================================================================
+
+A. CALLBACKS (The Historical Foundation):
+Functions passed as arguments to be executed when an asynchronous operation finishes.
+Pitfall ("Callback Hell"): Deeply nested callbacks are hard to read and handle errors:
+
+getUser(1, (user) => {
+  getProjects(user.id, (projects) => {
+    getTowers(projects[0].id, (towers) => {
+      console.log("Towers loaded:", towers);
+    });
+  });
+});
+
+B. PROMISES (The Modern Architecture):
+An object representing the eventual completion (or failure) of an async operation.
+A Promise exists in one of 3 states:
+- PENDING: Initial state, operation is ongoing.
+- FULFILLED: Operation completed successfully (resolved).
+- REJECTED: Operation failed with an error (rejected).
+
+Example:
+--------------------------------------------------------------------------------
+function checkSiteSafety(score) {
+  return new Promise((resolve, reject) => {
+    if (score >= 70) {
+      resolve("Safety Certified: Score " + score);
+    } else {
+      reject(new Error("Safety Audit Failed: Score below 70"));
+    }
+  });
+}
+
+checkSiteSafety(85)
+  .then(result => console.log("Success:", result))
+  .catch(err => console.log("Error:", err.message));
+--------------------------------------------------------------------------------
+Terminal Output:
+Success: Safety Certified: Score 85
+
+C. ASYNC / AWAIT (The Modern Standard):
+Syntactic sugar on top of Promises that makes asynchronous code look and behave 
+like synchronous code. Use try/catch blocks for clean error handling.
+
+Example:
+--------------------------------------------------------------------------------
+async function runSafetyCheck() {
+  try {
+    const result = await checkSiteSafety(92);
+    console.log("Inspection Result:", result);
+  } catch (err) {
+    console.log("Inspection Failed:", err.message);
+  }
+}
+runSafetyCheck();
+--------------------------------------------------------------------------------
+Terminal Output:
+Inspection Result: Safety Certified: Score 92
+
+================================================================================
+4. THE FETCH API FOR HTTP REQUESTS
+================================================================================
+The built-in fetch() API sends HTTP requests. It returns a Promise that resolves 
+to a Response object.
+
+Why fetch() requires two 'await' calls:
+1. const res = await fetch(url);
+   Waits for HTTP response headers to arrive (status code, headers).
+2. const data = await res.json();
+   Asynchronously reads and parses the JSON response body stream.
+
+Example:
+--------------------------------------------------------------------------------
+async function loadTodo() {
+  try {
+    const res = await fetch("https://jsonplaceholder.typicode.com/todos/1");
+    if (!res.ok) {
+      throw new Error(`HTTP Error: ${res.status}`);
+    }
+    const data = await res.json();
+    console.log("Todo Title:", data.title);
+  } catch (err) {
+    console.log("Fetch Error:", err.message);
+  }
+}
+loadTodo();
+--------------------------------------------------------------------------------
+Terminal Output:
+Todo Title: delectus aut autem
+
+================================================================================
+5. PROMISE COMBINATORS: PARALLEL VS SEQUENTIAL
+================================================================================
+When fetching multiple resources, sequential execution wastes time waiting for 
+each request. Promise combinators allow concurrent operations:
+
+1. Promise.all([p1, p2, p3]):
+   - Runs all promises in parallel.
+   - Fails Fast: If any promise rejects, the entire Promise.all rejects immediately.
+   - NirmanIQ Use Case: Loading project dashboard where Project, Tower, and User 
+     data are all strictly required before rendering.
+
+2. Promise.allSettled([p1, p2, p3]):
+   - Runs all promises to completion regardless of individual outcomes.
+   - NEVER rejects. Returns array of objects: { status: 'fulfilled', value } or 
+     { status: 'rejected', reason }.
+   - NirmanIQ Use Case: Bulk uploading 20 site inspection photos where partial 
+     success is acceptable and failures can be displayed for retry.
+
+3. Promise.race([p1, p2]):
+   - Returns the result of the first promise to settle (fulfill or reject).
+   - NirmanIQ Use Case: Setting request timeouts (racing an API request against 
+     a 5-second timer promise).
+
+Sequential vs Parallel Timing:
+- Sequential (await p1; await p2; await p3): 500ms + 500ms + 500ms = 1500ms
+- Parallel (Promise.all([p1, p2, p3])): ~500ms total elapsed time!
+
+================================================================================
+6. PRACTICAL DESIGN PATTERNS (DAY 2 EXERCISES)
+================================================================================
+
+Pattern 1: Exponential Backoff Retry (exercise-2-retry-fetch.js)
+Resiliently retries failed network requests on spotty mobile/site connections, 
+doubling the delay on each attempt (500ms -> 1000ms -> 2000ms).
+
+Pattern 2: Worker Pool Task Queue (exercise-3-task-queue.js)
+Prevents server memory exhaustion by limiting concurrent async operations 
+(e.g., maximum 3 parallel video processing workers consuming from a shared queue).
+
+================================================================================

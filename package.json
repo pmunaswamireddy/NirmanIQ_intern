@@ -6,6 +6,9 @@
   "scripts": {
     "day1:ex1": "node day1/exercises/exercise-1-python-to-js.js",
     "day1:ex2": "node day1/exercises/exercise-2-destructuring.js",
-    "day1:ex3": "node day1/exercises/exercise-3-array-methods.js"
+    "day1:ex3": "node day1/exercises/exercise-3-array-methods.js",
+    "day2:ex1": "node day2/exercises/exercise-1-parallel-fetch.js",
+    "day2:ex2": "node day2/exercises/exercise-2-retry-fetch.js",
+    "day2:ex3": "node day2/exercises/exercise-3-task-queue.js"
   }
 }
