@@ -45,6 +45,12 @@ node day2/exercises/exercise-1-parallel-fetch.js
 node day2/exercises/exercise-2-retry-fetch.js
 node day2/exercises/exercise-3-task-queue.js
 
+# Day 3: TypeScript Essentials (Part 1)
+npm run day3:ex1
+npm run day3:ex2
+npm run day3:ex3
+npm run day3:ex4
+npm run typecheck
 ```
 
 ---
@@ -112,7 +118,7 @@ node day2/exercises/exercise-3-task-queue.js
   **Completed Folder:** [`day2/`](day2/)
   </details>
 
-- [ ] **Day 3 — TypeScript Essentials (Part 1)**
+- [x] **Day 3 — TypeScript Essentials (Part 1)**
   <details open>
   <summary>View Syllabus</summary>
 

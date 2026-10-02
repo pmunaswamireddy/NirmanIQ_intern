@@ -1,0 +1,222 @@
+================================================================================
+NIRMANIQ FULL-STACK INTERN TRAINING PROGRAM
+DAY 3: TYPESCRIPT ESSENTIALS (PART 1) - STATIC TYPING & DATA MODELING
+Author: Penumuru Madhu Sudhan Reddy | Program: NirmanIQ 90-Day Full-Stack
+================================================================================
+
+CORE OBJECTIVE:
+Master TypeScript's static type system: understand why we use TypeScript over 
+plain JavaScript, how types catch bugs at compile time before running code, 
+the convention between interfaces and types, generics for reusable type safety, 
+and discriminated unions for modeling state machines.
+
+================================================================================
+1. WHY TYPESCRIPT? THE 3 CORE BENEFITS
+================================================================================
+JavaScript is dynamically typed: types are evaluated only when code runs, which 
+means typos, wrong arguments, or missing properties cause crashes in production.
+TypeScript adds static typing at build time:
+
+1. CATCH BUGS AT COMPILE TIME:
+   Typo errors (e.g., user.emial instead of user.email) and passing wrong arguments 
+   trigger red underline errors in your editor before you ever run the code.
+
+2. SELF-DOCUMENTING CODE:
+   Function signatures explicitly declare parameter types and return types. You 
+   know what data enters and leaves without having to read the implementation.
+
+3. IDE SUPERPOWERS:
+   Complete autocomplete (IntelliSense), one-click refactoring (F2 to rename a 
+   property across all files), and instantaneous error highlighting in VS Code.
+
+================================================================================
+2. BASIC TYPE ANNOTATIONS & PRIMITIVES
+================================================================================
+Syntax: variable: type = value;
+
+Example:
+--------------------------------------------------------------------------------
+// Primitives
+const projectName: string = "Sobha Ivory";
+const totalFloors: number = 24;
+const isCertified: boolean = true;
+const createdAt: Date = new Date();
+
+// Arrays
+const towerNames: string[] = ["Tower A", "Tower B"];
+const floorScores: number[] = [85, 92, 78];
+
+// Function Signatures
+function calculateProgress(completed: number, total: number): number {
+  if (total === 0) return 0;
+  return Math.round((completed / total) * 100);
+}
+
+console.log("Progress:", calculateProgress(12, 24) + "%");
+--------------------------------------------------------------------------------
+Terminal Output:
+Progress: 50%
+
+================================================================================
+3. INTERFACE VS TYPE (THE NIRMANIQ CONVENTION)
+================================================================================
+Both describe data shapes, but professional teams maintain clear conventions:
+
+1. USE 'interface' FOR ENTITY SHAPES & DATA MODELS:
+   - Mandatory for domain models: Project, Tower, Floor, Room.
+   - Can be extended with 'extends'.
+   - Clear, clean error messages for object structures.
+
+2. USE 'type' FOR UNIONS, LITERALS & ALIASES:
+   - Mandatory for discrete status sets: 'planned' | 'in_progress' | 'completed'
+   - Used for primitive aliases and complex union types.
+
+Example:
+--------------------------------------------------------------------------------
+export type ConstructionStatus = 'planned' | 'in_progress' | 'completed';
+
+export interface Floor {
+  floorNumber: number;
+  status: ConstructionStatus;
+  engineerName: string;
+  notes?: string; // Optional property (denoted with '?')
+}
+
+const f1: Floor = {
+  floorNumber: 3,
+  status: 'in_progress',
+  engineerName: 'Suresh Kumar'
+};
+console.log(`Floor ${f1.floorNumber}: ${f1.status}`);
+--------------------------------------------------------------------------------
+Terminal Output:
+Floor 3: in_progress
+
+================================================================================
+4. UNION TYPES, LITERAL TYPES & TYPE NARROWING
+================================================================================
+- Literal Types: Restrict a variable to specific allowed string or number values.
+  type Priority = 'low' | 'medium' | 'high';
+
+- Union Types: Allow a value to be one of multiple types using the pipe (|).
+  let id: string | number;
+
+- Type Narrowing: Using 'typeof' or runtime checks so TypeScript safely narrows 
+  the type inside an 'if' or 'switch' block.
+
+Example:
+--------------------------------------------------------------------------------
+function formatTaskId(id: string | number): string {
+  if (typeof id === 'string') {
+    return id.toUpperCase(); // TS narrows id to string
+  } else {
+    return `TASK-00${id}`;   // TS narrows id to number
+  }
+}
+console.log(formatTaskId("site-a")); // SITE-A
+console.log(formatTaskId(15));       // TASK-0015
+--------------------------------------------------------------------------------
+
+================================================================================
+5. GENERICS: REUSABLE, TYPE-SAFE DATA STRUCTURES
+================================================================================
+Generics allow functions, interfaces, and classes to work with ANY type while 
+retaining full static type safety. <T> acts as a type placeholder:
+
+Generic Function:
+--------------------------------------------------------------------------------
+function getFirstItem<T>(items: T[]): T {
+  return items[0];
+}
+
+const num = getFirstItem([10, 20, 30]);      // Inferred as number
+const name = getFirstItem(["Tower A", "B"]); // Inferred as string
+--------------------------------------------------------------------------------
+
+Generic Cache Class (exercise-3-generic-map.ts):
+--------------------------------------------------------------------------------
+export class TypedCache {
+  private store = new Map<string, unknown>();
+
+  set<T>(key: string, value: T): void {
+    this.store.set(key, value);
+  }
+
+  get<T>(key: string): T | undefined {
+    return this.store.get(key) as T | undefined;
+  }
+}
+--------------------------------------------------------------------------------
+
+================================================================================
+6. 'unknown' VS 'any': WHY 'any' IS BANNED
+================================================================================
+- 'any' (BANNED AT NIRMANIQ):
+  Turns off the type checker entirely. Code behaves like untyped JavaScript, 
+  allowing runtime errors to slip through.
+
+- 'unknown' (STRONGLY RECOMMENDED):
+  Represents a value whose type is not yet known (e.g., from an external API).
+  TypeScript FORCES you to perform type checking (narrowing) before calling 
+  methods or accessing properties on it.
+
+Example:
+--------------------------------------------------------------------------------
+function processData(val: unknown) {
+  // val.toUpperCase(); // COMPILE ERROR: Object is of type 'unknown'
+
+  if (typeof val === 'string') {
+    console.log("Valid string:", val.toUpperCase()); // Safe!
+  }
+}
+--------------------------------------------------------------------------------
+
+================================================================================
+7. DISCRIMINATED UNIONS & EXHAUSTIVE CHECKING
+================================================================================
+A Discriminated Union is a union of object types that each contain a common 
+literal property with distinct values (the discriminant, e.g., 'status').
+
+This is the standard architectural pattern for modeling state machines:
+--------------------------------------------------------------------------------
+export interface PendingTask {
+  status: 'pending';
+  title: string;
+  createdAt: Date;
+}
+
+export interface InProgressTask {
+  status: 'in_progress';
+  title: string;
+  assignee: string; // Only exists during execution
+}
+
+export interface CompletedTask {
+  status: 'completed';
+  title: string;
+  reviewer: string; // Only exists upon completion
+  completedAt: Date;
+}
+
+export type ConstructionTask = PendingTask | InProgressTask | CompletedTask;
+
+// Exhaustive pattern matching using 'never':
+export function getTaskSummary(task: ConstructionTask): string {
+  switch (task.status) {
+    case 'pending':
+      return `[Pending] ${task.title}`;
+    case 'in_progress':
+      return `[In Progress] ${task.title} (Assigned: ${task.assignee})`;
+    case 'completed':
+      return `[Completed] ${task.title} (Reviewed by: ${task.reviewer})`;
+    default: {
+      const _exhaustiveCheck: never = task;
+      return _exhaustiveCheck;
+    }
+  }
+}
+--------------------------------------------------------------------------------
+If anyone adds a new task state (e.g., 'cancelled') without handling it in the 
+switch statement, TypeScript will fail compilation at the 'never' line!
+
+================================================================================

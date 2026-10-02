@@ -1,14 +1,24 @@
 {
   "name": "nirmaniq-intern-training",
   "version": "1.0.0",
-  "description": "NirmanIQ 90-Day Full-Stack Engineering Training Plan - Penumuru Madhu Sudhan Reddy",
-  "main": "index.js",
+  "description": "NirmanIQ internship training exercises",
+  "author": "P Madhu Sudhan Reddy",
+  "license": "ISC",
   "scripts": {
     "day1:ex1": "node day1/exercises/exercise-1-python-to-js.js",
     "day1:ex2": "node day1/exercises/exercise-2-destructuring.js",
     "day1:ex3": "node day1/exercises/exercise-3-array-methods.js",
     "day2:ex1": "node day2/exercises/exercise-1-parallel-fetch.js",
     "day2:ex2": "node day2/exercises/exercise-2-retry-fetch.js",
-    "day2:ex3": "node day2/exercises/exercise-3-task-queue.js"
+    "day2:ex3": "node day2/exercises/exercise-3-task-queue.js",
+    "day3:ex1": "node --experimental-strip-types day3/exercises/exercise-1-project-models.ts",
+    "day3:ex2": "node --experimental-strip-types day3/exercises/exercise-2-day1-in-ts.ts",
+    "day3:ex3": "node --experimental-strip-types day3/exercises/exercise-3-generic-map.ts",
+    "day3:ex4": "node --experimental-strip-types day3/exercises/exercise-4-discriminated-unions.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.4",
+    "typescript": "^7.0.2"
   }
 }
