@@ -10,6 +10,7 @@
     "noEmit": true
   },
   "include": [
-    "day3/**/*"
+    "day3/**/*",
+    "day4/**/*"
   ]
 }

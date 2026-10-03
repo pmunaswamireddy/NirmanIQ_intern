@@ -51,6 +51,14 @@ npm run day3:ex2
 npm run day3:ex3
 npm run day3:ex4
 npm run typecheck
+
+# Day 4: TypeScript Essentials (Part 2) + Tooling
+npm run day4:ex1
+npm run day4:ex2
+npm run day4:ex3
+npm run day4:ex4
+npm run lint
+npm run build
 ```
 
 ---
@@ -140,8 +148,8 @@ npm run typecheck
   **Completed Folder:** [`day3/`](day3/)
   </details>
 
-- [ ] **Day 4 — TypeScript Essentials (Part 2) + Tooling**
-  <details>
+- [x] **Day 4 — TypeScript Essentials (Part 2) + Tooling**
+  <details open>
   <summary>View Syllabus</summary>
 
   **Concepts (2 hrs):**
@@ -157,7 +165,8 @@ npm run typecheck
   - Exercise 3: Set up a TypeScript project from scratch with `tsconfig.json` (strict), ESLint, Prettier. Make `npm run lint` and `npm run build` pass with zero warnings.
   - Exercise 4: Configure and run ESLint — intentionally introduce 5 lint violations, then fix them
 
-  **Deliverable:** PR with working TypeScript project. `npm run lint` and `npm run build` must pass.
+  **Deliverable:** PR with working TypeScript project. `npm run lint` and `npm run build` must pass.  
+  **Completed Folder:** [`day4/`](day4/)
   </details>
 
 - [ ] **Day 5 — Git Workflow & HTML/CSS Foundations**

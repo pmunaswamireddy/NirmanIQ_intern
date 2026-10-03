@@ -15,7 +15,13 @@
     "day3:ex2": "node --experimental-strip-types day3/exercises/exercise-2-day1-in-ts.ts",
     "day3:ex3": "node --experimental-strip-types day3/exercises/exercise-3-generic-map.ts",
     "day3:ex4": "node --experimental-strip-types day3/exercises/exercise-4-discriminated-unions.ts",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "day4:ex1": "node --experimental-strip-types day4/exercises/exercise-1-crud-dtos.ts",
+    "day4:ex2": "node --experimental-strip-types day4/exercises/exercise-2-type-guards.ts",
+    "day4:ex3": "node --experimental-strip-types day4/exercises/exercise-3-project-setup.ts",
+    "day4:ex4": "node --experimental-strip-types day4/exercises/exercise-4-eslint-demo.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "build": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
     "@types/node": "^26.6.4",
