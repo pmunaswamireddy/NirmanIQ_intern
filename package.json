@@ -19,6 +19,7 @@
     "day4:ex2": "node --experimental-strip-types day4/exercises/exercise-2-type-guards.ts",
     "day4:ex3": "node --experimental-strip-types day4/exercises/exercise-3-project-setup.ts",
     "day4:ex4": "node --experimental-strip-types day4/exercises/exercise-4-eslint-demo.ts",
+    "day5:ex1": "node day5/exercises/exercise-1-git-workflow.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "tsc -p tsconfig.json --noEmit",
     "build": "tsc -p tsconfig.json --noEmit"

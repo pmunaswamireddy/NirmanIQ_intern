@@ -45,3 +45,13 @@ Thumbs.db
 *.tar.gz
 install_git.py
 extract_git.py
+
+# Agent instructions and non-internship workspace memory
+AGENTS.md
+GEMINI.md
+.agents/
+docs/
+*.instruction*
+.git-kata-sandbox/
+
+

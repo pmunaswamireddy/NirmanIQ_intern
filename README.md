@@ -59,6 +59,10 @@ npm run day4:ex3
 npm run day4:ex4
 npm run lint
 npm run build
+
+# Day 5: Git Workflow & HTML/CSS Foundations
+npm run day5:ex1
+# View UI deliverables: day5/index.html (or day5/exercises/exercise-2-tower-card.html)
 ```
 
 ---
@@ -169,8 +173,8 @@ npm run build
   **Completed Folder:** [`day4/`](day4/)
   </details>
 
-- [ ] **Day 5 — Git Workflow & HTML/CSS Foundations**
-  <details>
+- [x] **Day 5 — Git Workflow & HTML/CSS Foundations**
+  <details open>
   <summary>View Syllabus</summary>
 
   **Concepts (2 hrs):**
@@ -186,7 +190,8 @@ npm run build
   - Exercise 3: Build a responsive navigation bar with hamburger menu (CSS only, no JS). Must be keyboard-accessible (Tab, Enter).
   - **Friday Demo:** Show the Tower Progress Card on different screen sizes. Explain Git workflow.
 
-  **Deliverable:** PR following our branching convention. HTML passes WAVE accessibility checker.
+  **Deliverable:** PR following our branching convention. HTML passes WAVE accessibility checker.  
+  **Completed Folder:** [`day5/`](day5/)
   </details>
 
 ---

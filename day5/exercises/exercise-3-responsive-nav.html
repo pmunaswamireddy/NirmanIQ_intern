@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Responsive Navbar (CSS Only)</title>
+  <style>
+* {
+  box-sizing:border-box;
+}
+body {
+  font-family:Arial,sans-serif;
+  margin:0;
+  background:#f4f6f8;
+}
+nav {
+  background:#1976d2;
+  padding:10px 16px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  position:relative;
+}
+.logo {
+  color:white;
+  text-decoration:none;
+  font-size:18px;
+  font-weight:bold;
+}
+#menu-toggle { display:none; }
+.menu-icon {
+  color:white;
+  font-size:22px;
+  cursor:pointer;
+}
+.nav-links {
+  list-style:none;
+  margin:0;
+  padding:0;
+  position:absolute;
+  top:48px;
+  left:0;
+  right:0;
+  background:#1565c0;
+  display:none;
+  flex-direction:column;
+}
+.nav-links a {
+  color:white;
+  text-decoration:none;
+  display:block;
+  padding:10px 16px;
+  border-bottom:1px solid rgba(255,255,255,0.1);
+}
+#menu-toggle:checked ~ .nav-links {
+  display:flex;
+}
+@media (min-width:768px) {
+  .menu-icon { display:none; }
+  .nav-links {
+    position:static;
+    display:flex;
+    flex-direction:row;
+    background:transparent;
+  }
+  .nav-links a {
+    padding:6px 12px;
+    border-bottom:none;
+  }
+}
+.content {
+  padding:16px;
+  max-width:700px;
+  margin:0 auto;
+}
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="#" class="logo">BuildTrack</a>
+    <input type="checkbox" id="menu-toggle">
+    <label for="menu-toggle" class="menu-icon">&#9776;</label>
+    <ul class="nav-links">
+      <li><a href="#projects">Projects</a></li>
+      <li><a href="#towers">Towers</a></li>
+      <li><a href="#reports">Reports</a></li>
+    </ul>
+  </nav>
+  <main class="content">
+    <h2>CSS-Only Responsive Navbar</h2>
+    <p>Simple hamburger menu for mobile using a checkbox toggle without JavaScript.</p>
+  </main>
+</body>
+</html>

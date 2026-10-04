@@ -1,0 +1,304 @@
+================================================================================
+FULL-STACK INTERN TRAINING PROGRAM
+DAY 5: GIT WORKFLOW & HTML/CSS FOUNDATIONS
+Track: 90-Day Full-Stack Web Development
+================================================================================
+
+CORE OBJECTIVE:
+Master professional software collaboration and foundational web architecture:
+1. Implement enterprise Git branching models (feat/, fix/, chore/, release/).
+2. Understand Git Merge vs Git Rebase and resolve complex merge conflicts cleanly.
+3. Write production-grade, conventional commit messages in the imperative mood.
+4. Execute professional Pull Request (PR) lifecycles and code review etiquette.
+5. Build semantic, accessible HTML5 interfaces that eliminate "div soup" (WAVE compliant).
+6. Master the CSS Layout Trinity: Box Model, Flexbox (1D), and Grid (2D).
+7. Construct mobile-first responsive components transitioning seamlessly across 360px, 768px, and 1024px+.
+8. Build interactive, keyboard-accessible navigation components using pure CSS.
+
+================================================================================
+1. ENTERPRISE GIT BRANCHING STRATEGY
+================================================================================
+In enterprise teams with multiple developers shipping features daily, working directly 
+on `main` causes collisions, broken builds, and deployment outages. Standardized 
+branch naming creates immediate visual clarity in git logs and CI/CD pipelines.
+
+Standard Team Branch Naming Standards:
+--------------------------------------------------------------------------------
+- feat/<feature-name>    : New feature or capability (e.g. feat/tower-risk-score)
+- fix/<bug-id-or-name>   : Bug fix for existing functionality (e.g. fix/null-budget-calc)
+- chore/<task-name>      : Maintenance, dependency bumps, tooling (e.g. chore/upgrade-eslint)
+- docs/<doc-topic>       : Documentation, READMEs, architectural notes (e.g. docs/api-specs)
+- refactor/<scope>       : Code restructuring without feature change (e.g. refactor/tower-models)
+
+Branching Rules:
+- Always branch off the latest `main`: `git checkout main && git pull origin main && git checkout -b feat/...`
+- Never push incomplete or broken code directly to `main`.
+- Keep feature branches short-lived (1-3 days maximum) to minimize drift.
+
+================================================================================
+2. GIT MERGE VS GIT REBASE & RESOLVING CONFLICTS
+================================================================================
+When your feature branch diverges from `main`, you have two primary ways to integrate changes:
+
+--------------------------------------------------------------------------------
+A. Git Merge (3-Way Merge)
+--------------------------------------------------------------------------------
+- Command: `git checkout main && git merge feat/tower-progress`
+- What it does: Creates a new "merge commit" with two parents, preserving the exact 
+  chronological history of both branches.
+- Pros: True historical record; non-destructive.
+- Cons: Creates busy "railroad" graph logs if overused for small changes.
+
+--------------------------------------------------------------------------------
+B. Git Rebase (Linear Replay)
+--------------------------------------------------------------------------------
+- Command: `git checkout feat/tower-progress && git rebase main`
+- What it does: Rewrites branch history by picking your commits and replaying them 
+  one-by-one on top of `main`'s latest commit.
+- Pros: Keeps history completely linear and clean; avoids cluttering merge commits.
+- Golden Rule: NEVER rebase a branch that is shared publicly with other developers!
+
+--------------------------------------------------------------------------------
+C. Anatomy of a Merge Conflict
+--------------------------------------------------------------------------------
+A conflict occurs when two branches modify the exact same line of code or one branch 
+deletes a file that the other edited.
+
+Git pauses execution and inserts conflict markers:
+<<<<<<< HEAD
+Tower A: Structural Audit In Progress
+=======
+Tower A: Superstructure Started
+>>>>>>> feat/tower-updates
+
+Resolution Steps:
+1. Open the file in your IDE.
+2. Decide what the correct combined code should be.
+3. Delete the markers (`<<<<<<<`, `=======`, `>>>>>>>`).
+4. Stage the resolved file: `git add <filename>`
+5. Complete the merge/rebase: `git commit` (or `git rebase --continue`).
+
+Example Execution (from Exercise 1):
+--------------------------------------------------------------------------------
+$ git merge feat/tower-updates
+Auto-merging tower-status.txt
+CONFLICT (content): Merge conflict in tower-status.txt
+Automatic merge failed; fix conflicts and then commit the result.
+
+$ # After resolving conflict manually in editor:
+$ git add tower-status.txt
+$ git commit -m "merge: resolve tower status conflict between audit and progress updates"
+[main 0947f5a] merge: resolve tower status conflict between audit and progress updates
+
+Terminal Graph Output:
+*   0947f5a merge: resolve tower status conflict between audit and progress updates
+|\  
+| * 1b6dc53 feat: update Tower A progress to superstructure
+* | cdae79b fix: record structural audit on Tower A
+|/  
+* 68415bb feat: initialize tower status log
+
+--------------------------------------------------------------------------------
+D. Squashing Commits (Interactive Rebase / Soft Reset)
+--------------------------------------------------------------------------------
+Before opening a PR, developers often have "wip", "fixed typo", "tested" micro-commits. 
+Squashing collapses these into one clean, well-documented commit.
+
+Technique: Soft Reset to Branch Base
+$ git reset --soft HEAD~2
+$ git commit -m "docs: append audit verification timestamp and auditor details"
+
+Terminal Output:
+[chore/cleanup-docs 76a36ec] docs: append audit verification timestamp and auditor details
+ 1 file changed, 2 insertions(+)
+
+================================================================================
+3. CONVENTIONAL COMMITS & PULL REQUEST ETIQUETTE
+================================================================================
+
+A. The Imperative Mood Rule:
+- Always write commit messages in the imperative mood (commands):
+  * CORRECT  : "Add tower progress card component"
+  * INCORRECT: "Added tower progress card component"
+  * INCORRECT: "Adds tower progress card component"
+- Rule of thumb: If you prefix your subject line with "If applied, this commit will...", 
+  it must form a grammatically correct sentence.
+
+B. Conventional Commit Format:
+<type>(<optional scope>): <subject in imperative mood>
+
+[optional body explaining WHY, not WHAT]
+
+[optional footer, e.g. Closes #104]
+
+Examples:
+- feat(towers): add responsive floor progress meter
+- fix(auth): prevent expired token refresh loop
+- docs(day5): document git rebase and conflict workflows
+
+C. Pull Request (PR) Workflow:
+1. Push branch: `git push origin feat/tower-progress`
+2. Create Draft PR: Open early while working so mentors can give early architectural feedback.
+3. PR Description Template:
+   - What does this PR do?
+   - How was it tested?
+   - Screenshots/GIFs for UI changes.
+4. Review Etiquette:
+   - Keep PRs small (< 400 lines changed). Large PRs get shallow reviews.
+   - Reply to all reviewer comments politely and mark conversations resolved after pushing fixes.
+
+================================================================================
+4. SEMANTIC HTML5 & ACCESSIBILITY (NO DIV SOUP)
+================================================================================
+"Div soup" is the bad practice of wrapping every element in generic `<div>` tags with 
+custom classes. This destroys accessibility, disables browser assistive tools, and 
+fails automated accessibility audits (WAVE, axe-core).
+
+Semantic Elements Reference:
+--------------------------------------------------------------------------------
+Element      | Purpose & Accessibility Impact
+--------------------------------------------------------------------------------
+<header>     | Introductory section or site banner; landmark for assistive tech
+<nav>        | Major navigation links block; screen readers jump directly here
+<main>       | Central, dominant content of the document (only one per page)
+<section>    | Thematic grouping of content with its own heading
+<article>    | Self-contained composition that can stand independently (e.g. Card)
+<aside>      | Indirectly related content (sidebar, related links, notes)
+<footer>     | Concluding metadata, author info, copyright, or card actions
+<button>     | Interactive clickable action (supports Enter, Space, focus natively)
+<dl>,<dt>,<dd>| Description/metadata lists (perfect for label/value metric pairs)
+
+Why <button> Instead of <div onclick="...">?
+- A `<button>` gets automatic keyboard focus (<kbd>Tab</kbd>).
+- A `<button>` fires click events on <kbd>Enter</kbd> and <kbd>Space</kbd> automatically.
+- A `<button>` communicates its role to screen readers without ARIA hacks.
+- A `<div>` requires manual `tabindex="0"`, `role="button"`, and keydown event listeners.
+
+WCAG Contrast Requirements (WAVE / Axe-Core):
+- Normal text requires at least 4.5:1 contrast against background (AA) or 7:1 (AAA).
+- High-Contrast Accessible Status Colors:
+  * On Track (Green) : #14532d on #dcfce7 (Contrast ratio: 8.8:1 - AAA)
+  * At Risk (Amber)  : #78350f on #fef3c7 (Contrast ratio: 7.2:1 - AAA)
+  * Critical (Red)   : #7f1d1d on #fee2e2 (Contrast ratio: 8.4:1 - AAA)
+
+================================================================================
+5. THE CSS LAYOUT TRINITY: BOX MODEL, FLEXBOX & GRID
+================================================================================
+
+--------------------------------------------------------------------------------
+A. The CSS Box Model
+--------------------------------------------------------------------------------
+Every HTML element is a rectangular box composed of:
+1. Content  : The actual text, image, or child element.
+2. Padding  : Transparent space between content and border.
+3. Border   : Visible outline surrounding padding.
+4. Margin   : Transparent space pushing adjacent elements away.
+
+Modern Standard: `box-sizing: border-box;`
+- By default, CSS uses `content-box`, meaning `width: 300px` + `padding: 20px` = 340px total width!
+- With `border-box`, padding and borders are included INSIDE the specified width.
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+--------------------------------------------------------------------------------
+B. Flexbox (One-Dimensional Layouts)
+--------------------------------------------------------------------------------
+Use Flexbox when aligning items along a single axis (either horizontal row OR vertical column).
+- Navigation bars (items lined up horizontally with space-between)
+- Button groups (outline + primary action side-by-side)
+- Card header (title on the left, status badge on the right)
+
+Key Flexbox Properties:
+- `display: flex;`
+- `justify-content: space-between;` (distribute along main axis)
+- `align-items: center;` (align perpendicular to main axis)
+- `flex-direction: row | column;`
+- `gap: 1rem;` (modern spacing between flex items without margins)
+
+--------------------------------------------------------------------------------
+C. CSS Grid (Two-Dimensional Layouts)
+--------------------------------------------------------------------------------
+Use CSS Grid when aligning items simultaneously across rows AND columns.
+- Dashboard card grids (cards organized in responsive rows and columns)
+- Metric key-value lists (2x2 grid of data values)
+- Full page layout (header, sidebar, main feed, footer)
+
+Key Grid Properties:
+- `display: grid;`
+- `grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));` (fluid responsive grid)
+- `gap: 1.5rem;`
+
+================================================================================
+6. MOBILE-FIRST RESPONSIVE DESIGN (360px -> 768px -> 1024px)
+================================================================================
+Mobile-First means writing the base CSS for small screens first, then layering on 
+enhancements for wider screens using `min-width` media queries.
+
+Why Mobile-First?
+1. Performance: Mobile devices have less CPU and bandwidth; they should not download 
+   and override heavy desktop stylesheets.
+2. Architecture: Single-column layouts are simpler. Expanding from 1 column to 2 or 3 
+   columns is much cleaner than collapsing complex multi-column layouts down.
+
+Standard Responsive Breakpoints:
+--------------------------------------------------------------------------------
+Breakpoint | Viewport Width | Target Devices        | Typical Grid Layout
+--------------------------------------------------------------------------------
+Mobile     | Base (< 768px)  | Phones (360px - 480px) | 1 Column, full width
+Tablet     | >= 768px        | iPads, Tablets        | 2 Columns, collapsed sidebar
+Desktop    | >= 1024px       | Laptops & Monitors    | 3 Columns, persistent sidebar
+Wide       | >= 1280px       | Large Screens         | Max container width 1200px
+
+Example Mobile-First Media Query Implementation:
+--------------------------------------------------------------------------------
+/* Base: Mobile phone (1 column) */
+.card-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+/* Tablet (2 columns) */
+@media (min-width: 768px) {
+  .card-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+/* Desktop (3 columns) */
+@media (min-width: 1024px) {
+  .card-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+================================================================================
+7. PURE CSS ACCESSIBLE HAMBURGER MENU (EXERCISE 3)
+================================================================================
+Creating interactive widgets without JavaScript builds a deep understanding of 
+the browser's native capabilities.
+
+The Accessible CSS Checkbox Hack:
+1. An invisible semantic `<input type="checkbox" id="nav-toggle" class="nav-toggle">`
+2. A `<label for="nav-toggle">` displaying the 3 hamburger lines.
+3. Keyboard accessibility: Focus goes to the checkbox (`.nav-toggle:focus-visible + label`). 
+   Pressing <kbd>Space</kbd> checks/unchecks the input natively.
+4. CSS sibling selector: `.nav-toggle:checked ~ .nav-menu { max-height: 400px; }`
+5. On desktop (`@media (min-width: 768px)`), hide the toggle label (`display: none`) 
+   and display `.nav-menu` inline as a horizontal flex container.
+
+Terminal / Accessibility Verification:
+- WAVE Accessibility Checker: 0 Errors, 0 Contrast Errors.
+- All links keyboard accessible via Tab key.
+- ARIA landmarks: `<header>`, `<nav aria-label="Main Navigation">`, `<main>`.
+
+================================================================================
+SUMMARY CHECKLIST FOR DAY 5:
+================================================================================
+[x] Git Kata executed: feature branching, conflict generation, clean resolution, commit squash.
+[x] Tower Progress Card built: strict semantic HTML, WCAG AAA colors, mobile-first responsive.
+[x] Responsive Navigation built: pure CSS, zero JS, keyboard accessible via Tab and Space.
+[x] Friday Demo ready: integrated index.html displaying live navbar and responsive cards.
+================================================================================
