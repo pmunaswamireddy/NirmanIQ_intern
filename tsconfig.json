@@ -1,16 +1,20 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "Node16",
-    "moduleResolution": "Node16",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "jsx": "react-jsx",
+    "types": ["node"],
     "noEmit": true
   },
   "include": [
     "day3/**/*",
-    "day4/**/*"
+    "day4/**/*",
+    "day6/**/*",
+    "day7/**/*"
   ]
 }

@@ -198,8 +198,8 @@ npm run day5:ex1
 
 #### Week 2 (Days 6–10): React & Next.js Foundations
 
-- [ ] **Day 6 — React Core Concepts**
-  <details>
+- [x] **Day 6 — React Core Concepts**
+  <details open>
   <summary>View Syllabus</summary>
 
   **Concepts (3 hrs):**
@@ -215,7 +215,9 @@ npm run day5:ex1
   - Exercise 2: Build a `<ProgressBar>` component — accepts `percentage` (0-100), `riskLevel` ('on-track' | 'at-risk' | 'high-risk' | 'critical'), displays colored bar with label. Use NirmanIQ risk colors (#10b981, #f59e0b, #ef4444, #dc2626).
   - Exercise 3: Build a `<FloorGrid>` — display a 5x4 grid of floors in a tower. Each floor shows status (not-started, in-progress, completed). Click a floor to toggle status.
 
-  **Deliverable:** PR with all components. Each must be type-safe and render without console errors.
+  **Deliverable:** PR with all components. Each must be type-safe and render without console errors.  
+  **Completed Folder:** [`day6/`](day6/)  
+  **Run React Project:** `cd day6 && npm run dev` (Port 3006)
   </details>
 
 - [ ] **Day 7 — React Hooks & Side Effects**

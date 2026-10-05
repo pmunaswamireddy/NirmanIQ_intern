@@ -20,12 +20,26 @@
     "day4:ex3": "node --experimental-strip-types day4/exercises/exercise-3-project-setup.ts",
     "day4:ex4": "node --experimental-strip-types day4/exercises/exercise-4-eslint-demo.ts",
     "day5:ex1": "node day5/exercises/exercise-1-git-workflow.js",
+    "day6:test": "node --experimental-strip-types day6/exercises/test-day6.ts",
+    "day7:test": "node --experimental-strip-types day7/exercises/test-day7.ts",
+    "day6:dev": "npm --prefix day6 run dev",
+    "day6:build": "npm --prefix day6 run build",
+    "day7:dev": "npm --prefix day7 run dev",
+    "day7:build": "npm --prefix day7 run build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "tsc -p tsconfig.json --noEmit",
     "build": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
     "@types/node": "^26.6.4",
-    "typescript": "^7.0.2"
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.3"
+  },
+  "dependencies": {
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
   }
 }

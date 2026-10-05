@@ -1,0 +1,888 @@
+================================================================================
+NIRMANIQ FULL-STACK INTERN TRAINING PROGRAM
+DAY 6: COMPLETE IN-DEPTH GUIDE TO REACT CORE CONCEPTS
+Author: Penumuru Madhu Sudhan Reddy | Program: NirmanIQ 90-Day Full-Stack
+================================================================================
+
+CORE OBJECTIVE:
+Understand why modern web applications are built with React instead of vanilla 
+JavaScript, master the declarative paradigm (UI = f(state)), understand how the 
+Virtual DOM reconciles changes, write clean JSX adhering to its core rules, distinguish 
+between immutable Props and local State, master the useState hook, avoid common 
+rendering pitfalls, and build modular, reusable TypeScript React components.
+
+TABLE OF CONTENTS:
+1. Why React? Imperative vs Declarative Programming
+2. The Core Formula: UI = f(state) & The Virtual DOM Explained
+3. JSX Deep Dive: Compilation, Expressions, and the 4 Golden Rules
+4. Props vs State: Core Comparison, Typing, and Data Flow
+5. Deep Dive into `useState`: Memory Snapshots, Immutability, and Updaters
+6. The Re-Render Cycle: Step-by-Step Execution from Event to Pixel
+7. Conditional Rendering Patterns & The Dangerous "0" Gotcha
+8. List Rendering & Why `key` Matters (The Index-as-Key Trap Explained)
+9. Controlled Components & Synthetic Event Architecture
+10. Line-by-Line Architecture of Day 6 Exercises (TaskList, ProgressBar, FloorGrid)
+
+================================================================================
+1. WHY REACT? IMPERATIVE VS DECLARATIVE PROGRAMMING
+================================================================================
+To understand React, you must first understand the pain of building complex 
+applications with plain vanilla JavaScript.
+
+A. The Vanilla JavaScript Way (Imperative Programming):
+"Imperative" means you write step-by-step instructions telling the browser HOW 
+to change the DOM whenever anything happens.
+
+Example (Vanilla JS):
+--------------------------------------------------------------------------------
+// 1. Find HTML elements
+const input=document.getElementById("task-input");
+const addBtn=document.getElementById("add-btn");
+const taskList=document.getElementById("task-list");
+const countBadge=document.getElementById("count-badge");
+
+let count=0;
+
+// 2. Attach click event
+addBtn.addEventListener("click",()=>{
+  if(!input.value.trim())return;
+
+  // 3. Manually create DOM nodes
+  const li=document.createElement("li");
+  li.textContent=input.value;
+
+  const delBtn=document.createElement("button");
+  delBtn.textContent="Delete";
+  delBtn.addEventListener("click",()=>{
+    // 4. Manually remove node and update counter
+    taskList.removeChild(li);
+    count--;
+    countBadge.textContent=count+" tasks";
+  });
+
+  li.appendChild(delBtn);
+  taskList.appendChild(li);
+
+  // 5. Update state and reset input
+  count++;
+  countBadge.textContent=count+" tasks";
+  input.value="";
+});
+--------------------------------------------------------------------------------
+Rendered HTML & Interaction o/p:
+[Input: "Inspect foundation"] [Add Button clicked]
+-> DOM updated:
+   <ul id="task-list">
+     <li>Inspect foundation <button>Delete</button></li>
+   </ul>
+   <span id="count-badge">1 tasks</span>
+
+Why does this fail at scale?
+1. Fragility: If another developer changes `<ul id="task-list">` to `<ul id="tasks">` 
+   in the HTML file, the JS silently crashes or throws `null reference error`.
+2. State Desynchronization: If you have 3 different widgets showing the task count 
+   (navbar badge, sidebar summary, and footer total), you must remember to manually 
+   update all 3 in every event listener. Miss one line, and the UI displays conflicting numbers!
+3. Spaghetti Code: Event listeners, DOM queries, and state variables get tangled together.
+
+B. The React Way (Declarative Programming):
+"Declarative" means you describe WHAT the UI should look like for a given state, 
+and let React handle all DOM creations, removals, and updates.
+
+Example (React Component):
+--------------------------------------------------------------------------------
+import React,{useState} from 'react';
+
+function TaskApp(){
+  const [tasks,setTasks]=useState<string[]>([]);
+  const [text,setText]=useState("");
+
+  function addTask(){
+    if(!text.trim())return;
+    setTasks([...tasks,text]);
+    setText("");
+  }
+
+  function deleteTask(index:number){
+    setTasks(tasks.filter((_,i)=>i!==index));
+  }
+
+  return (
+    <div>
+      <span className="badge">{tasks.length} tasks</span>
+      <input value={text} onChange={e=>setText(e.target.value)} placeholder="New task..." />
+      <button onClick={addTask}>Add</button>
+      <ul>
+        {tasks.map((task,i)=>(
+          <li key={i}>
+            {task} <button onClick={()=>deleteTask(i)}>Delete</button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+--------------------------------------------------------------------------------
+Rendered Output (o/p):
+Initial Screen:
+[Badge: "0 tasks"]
+[Input box: ""] [Add Button]
+[Empty list]
+
+After typing "Check steel reinforcement" and clicking Add:
+[Badge: "1 tasks"]
+[Input box: ""] [Add Button]
+- Check steel reinforcement [Delete]
+
+Key Takeaway:
+Notice there is ZERO calls to `document.getElementById`, `document.createElement`, 
+or `removeChild`. When `tasks` array changes, React automatically re-draws the badge, 
+the list, and the buttons!
+
+================================================================================
+2. THE CORE FORMULA: UI = f(state) & THE VIRTUAL DOM
+================================================================================
+React models your user interface as a pure mathematical formula:
+
+    UI = f(state)
+
+Where:
+- `state`: The data driving your application at this exact second.
+- `f`: Your React component function that receives data and returns JSX.
+- `UI`: The visual representation rendered on screen.
+
+Real-World Construction Analogy:
+Think of `state` as the live site progress (e.g., 14 floors completed out of 20).
+Think of `f` (Component) as the Project Architect.
+Whenever progress changes, the architect draws a fresh blueprint.
+Instead of tearing down the entire physical building, the architect compares the 
+new blueprint with the old blueprint and tells the bricklayers: 
+"Leave floors 1 through 14 alone. Only lay bricks on floor 15."
+
+How the Virtual DOM Works:
+--------------------------------------------------------------------------------
+1. The Real DOM is Slow:
+   Modifying the browser's real DOM requires layout recalculation (reflow) and 
+   pixel repainting. Doing this frequently creates UI lag and stutter.
+
+2. The Virtual DOM is a Fast JavaScript Object:
+   In React, the Virtual DOM is a lightweight JS tree representing the UI in memory.
+
+Code Example:
+--------------------------------------------------------------------------------
+// When you write this JSX:
+const element=<div className="tower"><span className="name">Tower A</span></div>;
+
+// React creates this plain JS object in memory:
+const vdomNode={
+  type: 'div',
+  props: {
+    className: 'tower',
+    children: {
+      type: 'span',
+      props: {
+        className: 'name',
+        children: 'Tower A'
+      }
+    }
+  }
+};
+--------------------------------------------------------------------------------
+Console Output (o/p):
+console.log(vdomNode.type); // "div"
+console.log(vdomNode.props.className); // "tower"
+console.log(vdomNode.props.children.props.children); // "Tower A"
+
+3. The Diffing & Reconciliation Process:
+   - State Changes: User clicks a button, triggering `setState`.
+   - New Virtual DOM: React runs your component function and creates a brand-new Virtual DOM.
+   - Diffing: React's reconciliation engine compares the new Virtual DOM with the previous snapshot.
+   - Minimal Batch Update: React identifies the exact difference (e.g. only 1 text node changed) 
+     and writes only that single patch to the real browser DOM.
+
+================================================================================
+3. JSX DEEP DIVE: COMPILATION & THE 4 GOLDEN RULES
+================================================================================
+JSX stands for JavaScript XML. It allows you to write HTML-like syntax inside 
+JavaScript files.
+
+A. What JSX Compiles To:
+Browsers cannot read JSX directly. A transpiler (Babel or TypeScript compiler `tsc`) 
+transforms your JSX into standard JavaScript `React.createElement()` calls.
+
+Code Example:
+--------------------------------------------------------------------------------
+// What you write (JSX):
+function SiteHeader(){
+  return (
+    <header className="header">
+      <h1>BuildTrack Portal</h1>
+      <p>Site: Apex Tower</p>
+    </header>
+  );
+}
+
+// What the compiler outputs (Plain JavaScript):
+function SiteHeader(){
+  return React.createElement(
+    "header",
+    { className: "header" },
+    React.createElement("h1", null, "BuildTrack Portal"),
+    React.createElement("p", null, "Site: Apex Tower")
+  );
+}
+--------------------------------------------------------------------------------
+Rendered DOM Output (o/p):
+<header class="header">
+  <h1>BuildTrack Portal</h1>
+  <p>Site: Apex Tower</p>
+</header>
+
+B. The 4 Golden Rules of JSX:
+--------------------------------------------------------------------------------
+Rule 1: Return a Single Root Element (or Fragment)
+Why? A JavaScript function cannot return two values at once (`return a, b;` is invalid).
+Similarly, you cannot return two adjacent JSX tags without a parent wrapper.
+
+// ❌ WRONG (Compiler Syntax Error):
+function Bad(){
+  return (
+    <h1>Title</h1>
+    <p>Subtitle</p>
+  );
+}
+
+// ✓ RIGHT (Using React Fragment <>...</> to avoid extra <div> in DOM):
+function Good(){
+  return (
+    <>
+      <h1>Title</h1>
+      <p>Subtitle</p>
+    </>
+  );
+}
+Rendered DOM o/p:
+<h1>Title</h1>
+<p>Subtitle</p>
+
+Rule 2: Attribute Names Use camelCase
+Because JSX is JavaScript, reserved keywords in JS cannot be used as HTML attributes:
+- `class` becomes `className` (since `class` defines ES6 classes).
+- `for` becomes `htmlFor` (since `for` defines loops).
+- `onclick` becomes `onClick`, `onchange` becomes `onChange`.
+- Inline styles are passed as JavaScript objects with camelCase properties:
+  `<div style={{ backgroundColor: '#f1f5f9', fontSize: '14px', marginTop: '8px' }}>`
+  (Outer `{}` means "enter JavaScript", inner `{}` is the JS object literal).
+
+Rule 3: All Tags Must Explicitly Self-Close
+In standard HTML, tags like `<img>`, `<input>`, and `<br>` can be left open. 
+In JSX, they MUST be closed with a trailing slash `/`:
+- `<input type="text" />`
+- `<img src="blueprint.png" alt="Blueprint" />`
+- `<br />`
+
+Rule 4: Curly Braces `{ }` are the Window to JavaScript Expressions
+Inside JSX markup, wrapping code in curly braces `{}` allows you to execute any 
+valid JavaScript expression (variables, arithmetic, ternaries, function calls).
+
+Code Example:
+--------------------------------------------------------------------------------
+function FloorBadge({ floor, total }: { floor: number; total: number }){
+  const isTopFloor=floor===total;
+  return (
+    <div>
+      <h3>Floor {floor} of {total}</h3>
+      <p>Progress: {(floor/total)*100}%</p>
+      <span>Status: {isTopFloor ? "Penthouse Level" : "Standard Floor"}</span>
+    </div>
+  );
+}
+--------------------------------------------------------------------------------
+Rendered Output for <FloorBadge floor={10} total={10} /> (o/p):
+<div>
+  <h3>Floor 10 of 10</h3>
+  <p>Progress: 100%</p>
+  <span>Status: Penthouse Level</span>
+</div>
+
+Note: Statements (like `if(...)`, `for(...)`, `while(...)`) cannot go inside `{}`. 
+Only expressions that evaluate to a value (like ternaries and `.map()`) are allowed.
+
+================================================================================
+4. PROPS VS STATE: CORE COMPARISON, TYPING & DATA FLOW
+================================================================================
+Understanding the distinction between Props and State is fundamental to React.
+
+--------------------------------------------------------------------------------
+Feature           | Props                          | State
+--------------------------------------------------------------------------------
+Definition        | Input parameters passed to child| Internal memory owned by component
+Who Owns It?      | Parent component               | The component declaring `useState`
+Can Child Mutate? | NO (Read-only / Immutable)     | YES (Via the setter function)
+Change Triggers?  | Re-render when parent updates  | Re-render when setter is invoked
+Mental Analogy    | Function arguments `f(x)`      | Local variables in a persistent closure
+TypeScript        | `interface MyProps { ... }`    | `const [x, setX] = useState<T>(init)`
+--------------------------------------------------------------------------------
+
+A. Unidirectional Data Flow (Top-Down):
+Data in React flows strictly downward from Parent to Child via Props.
+Children communicate back UP to parents using callback functions.
+
+Code Example:
+--------------------------------------------------------------------------------
+// 1. Child Component declaring its Props contract with TypeScript interface
+interface WorkerCardProps {
+  name: string;
+  role: string;
+  isAvailable: boolean;
+  onToggleStatus: (workerName: string) => void;
+}
+
+function WorkerCard({ name, role, isAvailable, onToggleStatus }: WorkerCardProps){
+  return (
+    <div style={{ border: '1px solid #ccc', padding: '10px', margin: '6px' }}>
+      <h4>{name} ({role})</h4>
+      <p>Availability: {isAvailable ? "On Site" : "Off Duty"}</p>
+      <button onClick={()=>onToggleStatus(name)}>
+        Switch to {isAvailable ? "Off Duty" : "On Site"}
+      </button>
+    </div>
+  );
+}
+
+// 2. Parent Component managing State and passing Props down
+export function SiteTeam(){
+  const [workers,setWorkers]=useState([
+    { name: "Ramesh Kumar", role: "Site Supervisor", isAvailable: true },
+    { name: "Suresh Rao", role: "Safety Officer", isAvailable: false }
+  ]);
+
+  function handleToggle(workerName: string){
+    setWorkers(workers.map(w => 
+      w.name===workerName ? { ...w, isAvailable: !w.isAvailable } : w
+    ));
+  }
+
+  return (
+    <div>
+      <h2>Active Site Crew</h2>
+      {workers.map(w => (
+        <WorkerCard
+          key={w.name}
+          name={w.name}
+          role={w.role}
+          isAvailable={w.isAvailable}
+          onToggleStatus={handleToggle}
+        />
+      ))}
+    </div>
+  );
+}
+--------------------------------------------------------------------------------
+Rendered Output (o/p):
+Initial Screen:
+Active Site Crew
+---------------------------------------
+Ramesh Kumar (Site Supervisor)
+Availability: On Site
+[Button: Switch to Off Duty]
+---------------------------------------
+Suresh Rao (Safety Officer)
+Availability: Off Duty
+[Button: Switch to On Site]
+
+Interaction: Clicking [Switch to Off Duty] for Ramesh Kumar
+-> Child calls `props.onToggleStatus("Ramesh Kumar")`.
+-> Parent runs `handleToggle`, calls `setWorkers(...)`.
+-> Parent re-renders both cards with new props.
+-> Ramesh Kumar now displays: "Availability: Off Duty" and button "Switch to On Site".
+
+================================================================================
+5. DEEP DIVE INTO useState: MEMORY SNAPSHOTS & IMMUTABILITY
+================================================================================
+Syntax:
+const [state, setState] = useState(initialValue);
+
+A. State is a Photographic Snapshot:
+A common source of confusion for beginners is trying to read updated state 
+immediately after calling the setter function.
+
+Code Example:
+--------------------------------------------------------------------------------
+function Counter(){
+  const [count,setCount]=useState(0);
+
+  function handleClick(){
+    console.log("Before setter:", count);
+    setCount(count+1);
+    console.log("Immediately after setter:", count);
+  }
+
+  return <button onClick={handleClick}>Count: {count}</button>;
+}
+--------------------------------------------------------------------------------
+Console & UI Output on Click (o/p):
+Console Output:
+Before setter: 0
+Immediately after setter: 0
+
+Rendered Button on Screen:
+Count: 1
+
+Why did the second `console.log` print 0 instead of 1?
+Because `count` is a local constant inside that specific execution of `Counter()`.
+Calling `setCount(count+1)` schedules a re-render with React for the NEXT frame; 
+it does NOT mutate the variable in the currently running function execution!
+
+B. The Absolute Law of Immutability:
+Never mutate existing objects or arrays in state directly!
+
+// ❌ WRONG (Direct Mutation):
+const [items,setItems]=useState(["Cement","Sand"]);
+function addItemBad(){
+  items.push("Gravel"); // Mutates the existing array in place
+  setItems(items);      // Passes the SAME memory address!
+}
+
+Why doesn't the UI update?
+React optimizes renders using reference equality (`oldState === newState`).
+Because `items` still points to the exact same array in computer memory, 
+`oldState === newState` evaluates to `true`, and React assumes nothing changed!
+
+// ✓ RIGHT (Immutable Update using Spread Operator `...`):
+function addItemGood(){
+  setItems([...items,"Gravel"]); // Creates a brand-new array in memory!
+}
+
+Cheat Sheet for Immutability:
+--------------------------------------------------------------------------------
+Operation        | ❌ Mutating (Avoid!)        | ✓ Immutable (Use This!)
+--------------------------------------------------------------------------------
+Add to Array     | `arr.push(item)`           | `[...arr, item]`
+Remove by Index  | `arr.splice(i, 1)`         | `arr.filter((_, idx) => idx !== i)`
+Update Item in Arr| `arr[i].done = true`       | `arr.map((item, idx) => idx === i ? { ...item, done: true } : item)`
+Update Object    | `obj.status = "done"`      | `{ ...obj, status: "done" }`
+--------------------------------------------------------------------------------
+
+C. Functional State Updates (`prev => ...`):
+When your next state depends on the previous state, always pass an updater function:
+
+Code Example:
+--------------------------------------------------------------------------------
+function BatchCounter(){
+  const [count,setCount]=useState(0);
+
+  function handleBatchBad(){
+    setCount(count+1); // reads count=0 -> schedules 1
+    setCount(count+1); // reads count=0 -> schedules 1
+    setCount(count+1); // reads count=0 -> schedules 1
+  }
+
+  function handleBatchGood(){
+    setCount(prev=>prev+1); // receives 0 -> returns 1
+    setCount(prev=>prev+1); // receives 1 -> returns 2
+    setCount(prev=>prev+1); // receives 2 -> returns 3
+  }
+
+  return (
+    <div>
+      <p>Count: {count}</p>
+      <button onClick={handleBatchBad}>Bad +3</button>
+      <button onClick={handleBatchGood}>Good +3</button>
+    </div>
+  );
+}
+--------------------------------------------------------------------------------
+Output (o/p):
+Clicking [Bad +3]:  Count changes from 0 to 1 (Not 3!).
+Clicking [Good +3]: Count changes from 0 to 3 (Exact correct sequential increment).
+
+================================================================================
+6. THE RE-RENDER CYCLE: STEP-BY-STEP EXECUTION
+================================================================================
+When an event happens, how does React transition from code to pixels?
+
+Step-by-Step Flow:
+1. Trigger: User clicks a button or types in an input.
+2. State Setter: Component event handler calls `setState(...)`.
+3. Render Phase: React calls the component function again from top to bottom.
+   - All local variables, calculations, and JSX elements are regenerated.
+   - A new Virtual DOM tree is returned.
+4. Reconciliation (Diffing): React compares the new Virtual DOM tree with the previous one.
+   - Calculates the minimum changeset (e.g. only 1 text span changed from "0%" to "25%").
+5. Commit Phase: React updates the real browser DOM with the calculated patch.
+6. Repaint: The browser recalculates layout and repaints the pixels on screen.
+
+Code Example:
+--------------------------------------------------------------------------------
+function RenderCycleDemo(){
+  const [active,setActive]=useState(false);
+  console.log("[Render Phase] Component function executed. active =", active);
+
+  return (
+    <div>
+      <p>Status: {active ? "Active" : "Inactive"}</p>
+      <button onClick={()=>{
+        console.log("[Event] Button clicked");
+        setActive(prev=>!prev);
+      }}>
+        Toggle
+      </button>
+    </div>
+  );
+}
+--------------------------------------------------------------------------------
+Console Output sequence on initial load and click (o/p):
+Initial Page Load:
+[Render Phase] Component function executed. active = false
+
+User clicks [Toggle] Button:
+[Event] Button clicked
+[Render Phase] Component function executed. active = true
+
+================================================================================
+7. CONDITIONAL RENDERING PATTERNS & THE DANGEROUS "0" GOTCHA
+================================================================================
+React provides three clean ways to render elements conditionally:
+
+Pattern 1: Ternary Operator (`condition ? <TrueUI /> : <FalseUI />`)
+Use when you want to choose between two alternative views.
+
+Code Example:
+--------------------------------------------------------------------------------
+function FloorStatus({ isComplete }: { isComplete: boolean }){
+  return (
+    <div>
+      Floor 4: {isComplete ? (
+        <span style={{ color: '#10b981', fontWeight: 'bold' }}>Inspected & Approved</span>
+      ) : (
+        <span style={{ color: '#f59e0b' }}>Pending Inspection</span>
+      )}
+    </div>
+  );
+}
+--------------------------------------------------------------------------------
+Output for <FloorStatus isComplete={true} /> (o/p):
+Floor 4: Inspected & Approved
+
+Output for <FloorStatus isComplete={false} /> (o/p):
+Floor 4: Pending Inspection
+
+Pattern 2: Short-Circuit Logical AND (`condition && <UI />`)
+Use when you want to render something ONLY if a condition is true, and nothing if false.
+
+Code Example:
+--------------------------------------------------------------------------------
+function SafetyAlert({ hazardDetected }: { hazardDetected: boolean }){
+  return (
+    <div>
+      <h3>Site Status</h3>
+      {hazardDetected && (
+        <div style={{ background: '#fee2e2', color: '#dc2626', padding: '8px' }}>
+          ⚠️ Hazard Reported: High wind speeds on Tower Crane 2!
+        </div>
+      )}
+    </div>
+  );
+}
+--------------------------------------------------------------------------------
+Output for hazardDetected={true} (o/p):
+Site Status
+⚠️ Hazard Reported: High wind speeds on Tower Crane 2!
+
+Output for hazardDetected={false} (o/p):
+Site Status
+(Alert box is completely omitted from the DOM)
+
+⚠️ THE DANGEROUS NUMBER "0" GOTCHA:
+In JavaScript, `0 && <Component />` returns `0`, because 0 is falsy and short-circuits.
+React renders the number `0` directly into the DOM!
+
+Code Example:
+--------------------------------------------------------------------------------
+function TaskCounter({ tasks }: { tasks: string[] }){
+  return (
+    <div>
+      {/* ❌ BUG: When tasks is empty [], tasks.length is 0. Screen renders "0"! */}
+      {tasks.length && <p>You have {tasks.length} tasks pending.</p>}
+
+      {/* ✓ FIX 1: Explicit comparison > 0 */}
+      {tasks.length > 0 && <p>You have {tasks.length} tasks pending.</p>}
+
+      {/* ✓ FIX 2: Convert to boolean */}
+      {Boolean(tasks.length) && <p>You have {tasks.length} tasks pending.</p>}
+    </div>
+  );
+}
+--------------------------------------------------------------------------------
+Rendered HTML when tasks=[] (o/p):
+Buggy version renders:  <div>0</div>
+Fixed version renders:  <div></div> (Clean, nothing rendered)
+
+Pattern 3: Early Return (Guard Clauses)
+Use when a component cannot render until data is ready (e.g., loading or error states).
+
+Code Example:
+--------------------------------------------------------------------------------
+interface Project { id: string; name: string; }
+function ProjectDetails({ project, isLoading }: { project: Project | null; isLoading: boolean }){
+  if(isLoading){
+    return <div className="spinner">Loading project data...</div>;
+  }
+  if(!project){
+    return <div className="error">No project selected.</div>;
+  }
+  return <h2>Project: {project.name}</h2>;
+}
+--------------------------------------------------------------------------------
+Output when isLoading={true} (o/p):
+<div class="spinner">Loading project data...</div>
+
+Output when isLoading={false} and project={ id: "p1", name: "Apex Heights" } (o/p):
+<h2>Project: Apex Heights</h2>
+
+================================================================================
+8. LIST RENDERING & WHY "key" MATTERS (THE INDEX TRAP)
+================================================================================
+To render lists in React, use the JavaScript `.map()` array method.
+
+Code Example:
+--------------------------------------------------------------------------------
+interface Tower { id: string; name: string; floors: number; }
+
+function TowerList(){
+  const towers: Tower[]=[
+    { id: "tow-a", name: "Tower Alpha", floors: 24 },
+    { id: "tow-b", name: "Tower Beta", floors: 18 },
+    { id: "tow-c", name: "Tower Gamma", floors: 30 }
+  ];
+
+  return (
+    <ul>
+      {towers.map(t => (
+        <li key={t.id}>
+          <strong>{t.name}</strong> - {t.floors} Floors
+        </li>
+      ))}
+    </ul>
+  );
+}
+--------------------------------------------------------------------------------
+Rendered Output (o/p):
+- Tower Alpha - 24 Floors
+- Tower Beta - 18 Floors
+- Tower Gamma - 30 Floors
+
+Why does React require a `key` prop?
+The `key` provides a permanent identity to each element across renders.
+When items are added, removed, or reordered, React uses the key to know which 
+DOM node to move or delete, without re-rendering the entire list.
+
+THE "INDEX AS KEY" BUG EXPLAINED:
+Why shouldn't you use array index: `key={index}`?
+
+Imagine a task list where each item has an input field or checkbox:
+Render 1:
+- Key 0: [x] Check foundation (Checked)
+- Key 1: [ ] Inspect plumbing  (Unchecked)
+- Key 2: [ ] Install electrical (Unchecked)
+
+User deletes "Check foundation":
+Render 2:
+- Key 0: [ ] Inspect plumbing
+- Key 1: [ ] Install electrical
+
+What React does:
+React looks at Key 0. It says: "Key 0 was checked before, so I will reuse the checked DOM node!"
+Result: "Inspect plumbing" is now mistakenly checked!
+Rule: ALWAYS use a unique, stable ID (`t.id`) for keys in dynamic lists!
+
+================================================================================
+9. CONTROLLED COMPONENTS & SYNTHETIC EVENTS
+================================================================================
+In standard HTML, `<input>` tags hold their own internal state.
+In React, a "Controlled Component" is an input whose value is completely controlled 
+by React state.
+
+Code Example:
+--------------------------------------------------------------------------------
+function MaterialInput(){
+  const [material,setMaterial]=useState("");
+  const [error,setError]=useState("");
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>){
+    const val=e.target.value;
+    setMaterial(val);
+
+    // Instant validation on every keystroke
+    if(val.length>0 && val.length<3){
+      setError("Material name must be at least 3 characters.");
+    }else{
+      setError("");
+    }
+  }
+
+  function handleSubmit(e: React.FormEvent){
+    e.preventDefault(); // Prevents full-page browser refresh!
+    if(!material.trim())return;
+    console.log("Material saved to site inventory:", material);
+    setMaterial("");
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <label>Material Name: </label>
+      <input
+        type="text"
+        value={material}            // State drives the input
+        onChange={handleChange}     // Input updates the state
+        placeholder="e.g. TMT Steel 16mm"
+      />
+      <button type="submit" disabled={material.length<3}>Save</button>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+    </form>
+  );
+}
+--------------------------------------------------------------------------------
+Interaction & Console Output (o/p):
+1. User types "TM":
+   Input displays: "TM"
+   Error message renders: "Material name must be at least 3 characters."
+   [Save] button is disabled.
+
+2. User types "TMT Steel":
+   Input displays: "TMT Steel"
+   Error message disappears.
+   [Save] button is enabled.
+
+3. User clicks [Save]:
+   Page does NOT reload (`e.preventDefault()`).
+   Console prints: "Material saved to site inventory: TMT Steel"
+   Input is cleared to "".
+
+Why Use Controlled Components?
+1. Single Source of Truth: State always has the current value.
+2. Real-time Formatting & Validation: Enforce uppercase, numeric-only, or character limits instantly.
+3. Form Submission: No need to query `document.querySelector('input').value`.
+
+================================================================================
+10. LINE-BY-LINE ARCHITECTURE OF DAY 6 EXERCISES
+================================================================================
+
+A. Exercise 1: <TaskList /> (`day6/exercises/exercise-1-task-list.tsx`)
+--------------------------------------------------------------------------------
+Core Types:
+export interface Task { id: number; text: string; done: boolean; }
+export type FilterStatus = 'all' | 'active' | 'completed';
+
+Key Operations:
+1. Adding a Task:
+   function addTask(){
+     if(!text.trim())return;
+     setTasks([...tasks,{ id: Date.now(), text: text.trim(), done: false }]);
+     setText("");
+   }
+   Explanation: Creates a new unique ID with `Date.now()`, spreads previous tasks, 
+   and resets the input field.
+
+2. Toggling a Task:
+   function toggleTask(id: number){
+     setTasks(tasks.map(t => t.id===id ? { ...t, done: !t.done } : t));
+   }
+   Explanation: Uses `.map()` to return a copy with `done` flipped for the matching ID.
+
+3. Deleting a Task:
+   function deleteTask(id: number){
+     setTasks(tasks.filter(t => t.id!==id));
+   }
+   Explanation: Uses `.filter()` to return all tasks except the one with the matching ID.
+
+4. Dynamic Filtering:
+   const visible=tasks.filter(t => {
+     if(filter==='active')return !t.done;
+     if(filter==='completed')return t.done;
+     return true;
+   });
+   Explanation: Dynamically derives the visible subset without mutating the master `tasks` array.
+
+B. Exercise 2: <ProgressBar /> (`day6/exercises/exercise-2-progress-bar.tsx`)
+--------------------------------------------------------------------------------
+Core Types:
+export type RiskLevel = 'on-track' | 'at-risk' | 'high-risk' | 'critical';
+export interface ProgressBarProps {
+  percentage: number;
+  label?: string;
+  riskLevel?: RiskLevel;
+}
+
+Key Operations:
+1. Clamping the Percentage:
+   const pct=Math.min(100, Math.max(0, percentage));
+   Explanation: Ensures negative numbers clamp to 0 and numbers above 100 clamp to 100.
+
+2. Risk Color Mapping:
+   const colors: Record<RiskLevel, string>={
+     'on-track': '#10b981',  // Green
+     'at-risk': '#f59e0b',   // Amber
+     'high-risk': '#ef4444', // Red
+     'critical': '#dc2626'   // Deep Red
+   };
+
+3. Dynamic Style Rendering:
+   <div style={{ width: `${pct}%`, height: '100%', background: barColor }} />
+   Explanation: Sets the CSS width percentage dynamically based on the clamped state.
+
+C. Exercise 3: <FloorGrid /> (`day6/exercises/exercise-3-floor-grid.tsx`)
+--------------------------------------------------------------------------------
+Core Types:
+export type FloorStatus = 'not-started' | 'in-progress' | 'completed';
+export interface FloorItem { floorNumber: number; status: FloorStatus; }
+
+Key Operations:
+1. Generating 20 Floors:
+   const [floors,setFloors]=useState<FloorItem[]>(() => 
+     Array.from({ length: 20 }, (_, i) => ({
+       floorNumber: i+1,
+       status: i<8 ? 'completed' : i<13 ? 'in-progress' : 'not-started'
+     }))
+   );
+
+2. Status Cycling State Machine:
+   function toggleFloor(floorNumber: number){
+     setFloors(floors.map(f => {
+       if(f.floorNumber!==floorNumber)return f;
+       const next: FloorStatus=
+         f.status==='not-started' ? 'in-progress' :
+         f.status==='in-progress' ? 'completed' : 'not-started';
+       return { ...f, status: next };
+     }));
+   }
+
+3. Summary Metrics:
+   const completed=floors.filter(f => f.status==='completed').length;
+   const inProgress=floors.filter(f => f.status==='in-progress').length;
+   const notStarted=floors.filter(f => f.status==='not-started').length;
+   const progressPct=Math.round((completed/floors.length)*100);
+
+================================================================================
+STUDY SUMMARY & SELF-ASSESSMENT QUESTIONS
+================================================================================
+1. Why does `tasks.push(newTask)` fail to cause a re-render in React?
+   Answer: Array references in JavaScript point to memory locations. Mutating an array 
+   keeps the same memory reference. React checks `oldState === newState` and skips rendering.
+
+2. What is the difference between props and state?
+   Answer: Props are read-only inputs passed down from parent to child. State is internal, 
+   mutable memory managed directly within the component using `useState`.
+
+3. What happens if you write `{tasks.length && <List />}` when `tasks` is empty?
+   Answer: JavaScript evaluates `0 && <List />` to the number `0`. React renders the 
+   literal number "0" onto the screen instead of rendering nothing.
+
+4. Why must list items have a unique `key` instead of array `index`?
+   Answer: Using index causes state and DOM reuse bugs when items are reordered, 
+   deleted, or prepended. A unique ID preserves correct component identity.
+
+================================================================================
+END OF DAY 6 STUDY MATERIAL
+================================================================================
