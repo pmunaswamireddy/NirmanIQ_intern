@@ -220,8 +220,8 @@ npm run day5:ex1
   **Run React Project:** `cd day6 && npm run dev` (Port 3006)
   </details>
 
-- [ ] **Day 7 — React Hooks & Side Effects**
-  <details>
+- [x] **Day 7 — React Hooks & Side Effects**
+  <details open>
   <summary>View Syllabus</summary>
 
   **Concepts (2 hrs):**
@@ -237,7 +237,9 @@ npm run day5:ex1
   - Exercise 3: Build `useDebounce(value, delay)` hook. Use it in a search input that filters a list of 100 construction activities as user types.
   - Exercise 4: Build `useLocalStorage<T>(key, initialValue)` — persist state to localStorage. Use it to remember the user's preferred dashboard view (grid vs list).
 
-  **Deliverable:** PR with all hooks and components. Hooks must be generic and reusable.
+  **Deliverable:** PR with all hooks and components. Hooks must be generic and reusable.  
+  **Completed Folder:** [`day7/`](day7/)  
+  **Run React Project:** `cd day7 && npm run dev` (Port 3007)
   </details>
 
 - [ ] **Day 8 — Next.js App Router & Routing**

@@ -1,0 +1,578 @@
+================================================================================
+NIRMANIQ FULL-STACK INTERN TRAINING PROGRAM
+DAY 7: REACT HOOKS & SIDE EFFECTS (useEffect, useRef, useMemo, useCallback)
+Author: Penumuru Madhu Sudhan Reddy | Program: NirmanIQ 90-Day Full-Stack
+================================================================================
+
+CORE OBJECTIVE:
+Master React's side-effect management and advanced hooks: understand useEffect's 
+synchronization mental model, master dependency arrays and cleanup functions to 
+prevent memory leaks, learn useRef for mutable references and DOM access without 
+triggering re-renders, master referential equality with useMemo and useCallback, 
+understand the internal mechanics and rules of hooks, and author custom hooks 
+(useFetch, useDebounce, useLocalStorage) for modular enterprise architecture.
+
+TABLE OF CONTENTS:
+1. The Mental Model of useEffect: Synchronization, Not Lifecycle
+2. The Dependency Array Demystified & The Infinite Loop Trap
+3. The Cleanup Function: Memory Leaks, Timers & AbortController
+4. useRef: Mutable Storage Without Re-renders & Direct DOM Access
+5. Performance Optimization: useMemo & useCallback
+6. Custom Hooks: Extracting Stateful Logic (useFetch, useDebounce, useLocalStorage)
+7. The Rules of Hooks: Why Order and Top-Level Execution Matter
+8. Asynchronous Data Fetching Patterns & Race Conditions
+9. Debouncing in React: Instant Input with Debounced Heavy Operations
+10. Line-by-Line Architecture of Day 7 Exercises
+11. Self-Assessment & Interview Questions
+
+================================================================================
+1. THE MENTAL MODEL OF useEffect: SYNCHRONIZATION, NOT LIFECYCLE
+================================================================================
+A major mistake developers make when learning React is treating `useEffect` like 
+the old class component lifecycle methods (`componentDidMount`, `componentDidUpdate`, 
+`componentWillUnmount`).
+
+A. The Wrong Mental Model (Lifecycle):
+"I want this code to run when the component is born (mount), when it changes (update), 
+and when it dies (unmount)."
+Why this fails: It leads to tangled code where unrelated tasks (fetching data, listening 
+to window resizing, tracking analytics) are crammed into a single lifecycle method.
+
+B. The Right Mental Model (Synchronization):
+"I want this side effect to synchronize with state X. Whenever state X changes, make 
+sure the external world (browser title, API, DOM, local storage) matches X."
+
+Formula:
+Effect runs AFTER the render is painted to screen.
+Render Phase: Pure calculation (calculates JSX).
+Commit Phase: React updates real DOM.
+Browser Paints: Pixels appear on screen.
+Effect Phase: `useEffect` executes side effects.
+
+Code Example: Synchronizing Document Title with Active Floor
+--------------------------------------------------------------------------------
+import React,{ useState,useEffect } from 'react';
+
+function FloorTracker(){
+  const [floor,setFloor]=useState(1);
+
+  useEffect(()=>{
+    document.title=`BuildTrack - Floor ${floor}`;
+    console.log("Synchronized document title to Floor", floor);
+  },[floor]); // Synchronize whenever `floor` changes
+
+  return (
+    <div>
+      <h3>Current Inspection: Floor {floor}</h3>
+      <button onClick={()=>setFloor(prev=>prev+1)}>Next Floor</button>
+    </div>
+  );
+}
+--------------------------------------------------------------------------------
+Interaction & Console Output (o/p):
+Initial Render:
+- Browser Tab Title becomes: "BuildTrack - Floor 1"
+- Console: Synchronized document title to Floor 1
+
+User clicks [Next Floor] button:
+- Screen updates to: Current Inspection: Floor 2
+- Browser Tab Title becomes: "BuildTrack - Floor 2"
+- Console: Synchronized document title to Floor 2
+
+================================================================================
+2. THE DEPENDENCY ARRAY DEMYSTIFIED & THE INFINITE LOOP TRAP
+================================================================================
+The second argument to `useEffect` is the dependency array (`deps`). It tells React 
+when to re-run the effect function.
+
+The 3 Variations of Dependency Arrays:
+--------------------------------------------------------------------------------
+Variation             | Syntax                     | When It Runs
+--------------------------------------------------------------------------------
+No Dependency Array   | `useEffect(() => { ... })` | After EVERY single render
+Empty Dependency Array| `useEffect(() => { ... }, [])` | ONLY ONCE after initial mount
+With Dependencies     | `useEffect(() => { ... }, [a, b])`| After mount + when `a` or `b` changes
+--------------------------------------------------------------------------------
+
+⚠️ THE DANGEROUS INFINITE LOOP TRAP:
+If you update state inside an effect that doesn't have a dependency array, or if that 
+state is included in its own dependency array without a condition, you create an 
+infinite render loop that crashes the browser!
+
+Code Example:
+--------------------------------------------------------------------------------
+// ❌ WRONG: Infinite Loop Crash!
+function BrokenComponent(){
+  const [count,setCount]=useState(0);
+
+  useEffect(()=>{
+    // Every time this runs, it updates count.
+    // Updating count causes a re-render.
+    // The re-render triggers this effect again!
+    setCount(count+1); 
+  }); // Missing dependency array!
+}
+
+// ✓ RIGHT: Run only on mount with empty array []
+function FixedComponent(){
+  const [data,setData]=useState<string[]>([]);
+
+  useEffect(()=>{
+    console.log("Running one-time initialization...");
+    setData(["Tower A","Tower B"]);
+  },[]); // Empty array = run once after initial mount
+}
+--------------------------------------------------------------------------------
+Console Output (o/p):
+BrokenComponent:
+Console prints "Maximum update depth exceeded. React limits the number of nested updates..."
+
+FixedComponent:
+Running one-time initialization...
+(Runs exactly once; no infinite loop)
+
+Object & Array Dependencies (Referential Trap):
+In JavaScript, `{} !== {}` and `[] !== []`.
+If you declare an object inside your component and put it in the dependency array:
+const options={ siteId: 101 };
+useEffect(()=>{ ... },[options]); // ❌ Runs every render because options is a new object reference!
+
+Solution: Put primitive values (`options.siteId`) in the dependency array, or memoize 
+the object with `useMemo`.
+
+================================================================================
+3. THE CLEANUP FUNCTION: MEMORY LEAKS, TIMERS & ABORTCONTROLLER
+================================================================================
+When an effect sets up a subscription, an event listener, a timer, or a network request, 
+it must clean up after itself when the component unmounts or before the effect runs again.
+
+Syntax:
+useEffect(()=>{
+  // 1. Setup logic
+  return ()=>{
+    // 2. Cleanup logic
+  };
+},[deps]);
+
+When does the cleanup run?
+1. Before every re-execution of the effect (cleans up the previous run).
+2. When the component unmounts from the screen.
+
+Code Example: Window Resize Listener & Interval Timer
+--------------------------------------------------------------------------------
+function ScreenMonitor(){
+  const [width,setWidth]=useState(window.innerWidth);
+
+  useEffect(()=>{
+    function handleResize(){
+      setWidth(window.innerWidth);
+      console.log("Window resized to:", window.innerWidth);
+    }
+
+    // Setup listener
+    window.addEventListener('resize',handleResize);
+
+    // Cleanup: Remove listener when unmounting to prevent memory leaks!
+    return ()=>{
+      window.removeEventListener('resize',handleResize);
+      console.log("Cleaned up resize listener!");
+    };
+  },[]); // Only attach once on mount
+
+  return <div>Window Width: {width}px</div>;
+}
+--------------------------------------------------------------------------------
+Console Output (o/p):
+On Mount:
+Window Width: 1024px
+
+When user resizes window to 800px:
+Window resized to: 800px
+
+When user navigates away (component unmounts):
+Cleaned up resize listener!
+
+Canceling Inflight Network Requests with `AbortController`:
+If a user switches tabs or changes a dropdown filter rapidly, previous slow requests 
+can resolve AFTER the new request finishes, overwriting fresh data with stale data 
+(Race Condition). We prevent this with `AbortController`.
+
+Code Example:
+--------------------------------------------------------------------------------
+useEffect(()=>{
+  const controller=new AbortController();
+
+  fetch(`/api/floors/${floorId}`,{ signal: controller.signal })
+    .then(res=>res.json())
+    .then(data=>setFloorData(data))
+    .catch(err=>{
+      if(err.name==='AbortError'){
+        console.log("Fetch aborted for floor:", floorId);
+      }
+    });
+
+  return ()=>{
+    controller.abort(); // Cancels request if floorId changes before fetch completes!
+  };
+},[floorId]);
+--------------------------------------------------------------------------------
+Console Output if user clicks Floor 1 then Floor 2 rapidly (o/p):
+Fetch aborted for floor: 1
+Loaded data for floor: 2
+
+================================================================================
+4. useRef: MUTABLE STORAGE WITHOUT RE-RENDERS & DOM ACCESS
+================================================================================
+`useRef` creates a persistent object that holds a mutable value in `.current`:
+`const ref = useRef(initialValue);`
+
+The 2 Superpowers of `useRef`:
+1. Does NOT trigger a re-render when its value changes (unlike `useState`).
+2. Provides direct access to real browser DOM nodes (e.g. focusing an input, scrolling).
+
+Comparison: `useState` vs `useRef`:
+--------------------------------------------------------------------------------
+Feature                  | useState                       | useRef
+--------------------------------------------------------------------------------
+Purpose                  | Data that affects the UI       | Mutable data that does NOT affect UI
+Updates Trigger Render?  | YES                            | NO
+Access Syntax            | `value`                        | `ref.current`
+Update Syntax            | `setValue(newVal)`             | `ref.current = newVal`
+DOM Node Access?         | No                             | Yes (`<input ref={inputRef} />`)
+--------------------------------------------------------------------------------
+
+Code Example 1: Direct DOM Node Access (Auto-focusing an Input)
+--------------------------------------------------------------------------------
+import React,{ useRef,useEffect } from 'react';
+
+function QuickTaskInput(){
+  const inputRef=useRef<HTMLInputElement|null>(null);
+
+  useEffect(()=>{
+    // Focus the input automatically when page loads
+    inputRef.current?.focus();
+  },[]);
+
+  return (
+    <div>
+      <input ref={inputRef} placeholder="Enter task name..." />
+      <button onClick={()=>inputRef.current?.focus()}>Focus Input</button>
+    </div>
+  );
+}
+--------------------------------------------------------------------------------
+Rendered Output (o/p):
+Page loads with the blinking cursor already active inside the input box without 
+the user having to click it!
+
+Code Example 2: Persistent Mutable Value (Render Counter)
+--------------------------------------------------------------------------------
+function RenderCounter(){
+  const [text,setText]=useState("");
+  const renderCount=useRef(1);
+
+  useEffect(()=>{
+    renderCount.current=renderCount.current+1;
+  });
+
+  return (
+    <div>
+      <input value={text} onChange={e=>setText(e.target.value)} />
+      <p>Component has rendered: {renderCount.current} times</p>
+    </div>
+  );
+}
+--------------------------------------------------------------------------------
+Interaction & Output (o/p):
+Initial: Component has rendered: 1 times
+User types "A": Component has rendered: 2 times
+User types "AB": Component has rendered: 3 times
+(If we used useState for renderCount, updating it would trigger an infinite loop!)
+
+================================================================================
+5. PERFORMANCE OPTIMIZATION: useMemo & useCallback
+================================================================================
+Every time a component re-renders, all functions declared inside it are re-created 
+with brand-new memory references, and all calculations run again.
+
+A. `useMemo`: Caching Expensive Calculations
+Syntax:
+const memoizedValue = useMemo(() => calculateExpensive(a, b), [a, b]);
+
+Why use it? If you have a calculation that filters or sorts 5,000 items, you don't 
+want to run that expensive loop on every keystroke if the list hasn't changed.
+
+Code Example:
+--------------------------------------------------------------------------------
+function MaterialCostCalculator({ items, taxRate }: { items: number[]; taxRate: number }){
+  const [theme,setTheme]=useState('light');
+
+  // Expensive calculation cached with useMemo
+  const totalCost=useMemo(()=>{
+    console.log("[useMemo] Calculating total material cost...");
+    return items.reduce((sum,cost)=>sum+cost,0)*(1+taxRate);
+  },[items,taxRate]);
+
+  return (
+    <div>
+      <button onClick={()=>setTheme(theme==='light'?'dark':'light')}>Toggle Theme ({theme})</button>
+      <p>Total Estimated Cost: ${totalCost.toFixed(2)}</p>
+    </div>
+  );
+}
+--------------------------------------------------------------------------------
+Console & UI Output (o/p):
+On Initial Mount:
+[useMemo] Calculating total material cost...
+Total Estimated Cost: $10500.00
+
+When user clicks [Toggle Theme]:
+Theme toggles from 'light' to 'dark'.
+(Notice: "[useMemo] Calculating..." DOES NOT log! The cached calculation was reused!)
+
+B. `useCallback`: Caching Function References
+Syntax:
+const memoizedFn = useCallback((param) => { ... }, [deps]);
+
+Why use it? In JavaScript, functions are compared by memory reference:
+`(() => {}) === (() => {})` is FALSE.
+If you pass a function down as a prop to a child wrapped in `React.memo`, passing a 
+new function reference forces the child to re-render even if its data didn't change!
+
+Code Example:
+--------------------------------------------------------------------------------
+function Parent(){
+  const [count,setCount]=useState(0);
+
+  // Re-creates only if count changes
+  const handleDelete=useCallback((id: number)=>{
+    console.log("Deleted item:", id);
+  },[]);
+
+  return <ChildItem onDelete={handleDelete} />;
+}
+--------------------------------------------------------------------------------
+
+⚠️ When NOT to Optimize:
+Do NOT wrap every variable in `useMemo` and every function in `useCallback`!
+Creating and checking memoization hooks has memory and CPU overhead.
+Rule of Thumb: Only optimize when:
+1. An operation is genuinely computationally expensive (e.g. sorting large datasets).
+2. A function is passed to an optimized child component (`React.memo`) or used in a `useEffect` dependency array.
+
+================================================================================
+6. CUSTOM HOOKS: EXTRACTING STATEFUL LOGIC
+================================================================================
+A Custom Hook is a normal JavaScript function whose name starts with `use` and that 
+calls other React hooks (`useState`, `useEffect`, `useRef`, etc.).
+
+Why write Custom Hooks?
+- DRY (Don't Repeat Yourself): Share identical stateful logic across multiple components.
+- Separation of Concerns: Separate user interface JSX from data-fetching and caching logic.
+- Testability: Hooks can be tested in isolation.
+
+Example 1: `useFetch<T>(url)` Hook
+--------------------------------------------------------------------------------
+export function useFetch<T>(url: string){
+  const [data,setData]=useState<T|null>(null);
+  const [loading,setLoading]=useState(true);
+  const [error,setError]=useState<string|null>(null);
+
+  useEffect(()=>{
+    if(!url)return;
+    const controller=new AbortController();
+    setLoading(true);
+
+    fetch(url,{ signal: controller.signal })
+      .then(res=>res.json())
+      .then(data=>{ setData(data); setLoading(false); })
+      .catch(err=>{
+        if(err.name!=='AbortError'){
+          setError(err.message);
+          setLoading(false);
+        }
+      });
+
+    return ()=>controller.abort();
+  },[url]);
+
+  return { data,loading,error };
+}
+
+// Usage in Component:
+function ProjectViewer(){
+  const { data,loading,error }=useFetch<Project>('/api/project/1');
+  if(loading)return <p>Loading...</p>;
+  if(error)return <p>Error: {error}</p>;
+  return <h2>{data?.name}</h2>;
+}
+--------------------------------------------------------------------------------
+Rendered Output sequence (o/p):
+1. Initial state: <p>Loading...</p>
+2. When fetch resolves: <h2>Apex Heights Tower A</h2>
+
+Example 2: `useLocalStorage<T>(key, initialValue)` Hook
+--------------------------------------------------------------------------------
+export function useLocalStorage<T>(key: string,initialValue: T): [T,(val: T)=>void] {
+  const [val,setVal]=useState<T>(()=>{
+    try {
+      const item=window.localStorage.getItem(key);
+      return item ? JSON.parse(item) : initialValue;
+    }catch{
+      return initialValue;
+    }
+  });
+
+  const setValue=(newVal: T)=>{
+    setVal(newVal);
+    window.localStorage.setItem(key,JSON.stringify(newVal));
+  };
+
+  return [val,setValue];
+}
+--------------------------------------------------------------------------------
+Output (o/p):
+const [theme, setTheme] = useLocalStorage('site_theme', 'dark');
+// On refresh, 'site_theme' is automatically retrieved from browser storage!
+
+================================================================================
+7. THE RULES OF HOOKS: WHY TOP-LEVEL EXECUTION MATTERS
+================================================================================
+React has two strict rules for Hooks:
+
+Rule 1: Only Call Hooks at the Top Level
+Do NOT call hooks inside loops, conditions (`if`), or nested functions.
+
+Rule 2: Only Call Hooks from React Functions
+Call them only from React component functions or custom hooks, never from regular 
+JavaScript functions.
+
+Under the Hood: How React Tracks Hook State:
+Why is calling hooks inside `if` statements forbidden?
+React does NOT store state by variable name. Behind the scenes, React maintains an 
+internal array (or linked list) of hook slots for each component!
+
+Render 1:
+Slot 0: useState("Apex")   -> index 0
+Slot 1: useEffect(...)     -> index 1
+Slot 2: useState(0)        -> index 2
+
+If you put Slot 1 inside an `if(condition)`:
+When `condition` becomes false on Render 2:
+Slot 0: useState("Apex")   -> index 0
+Slot 1: useState(0)        -> index 1 (MISMATCH! React gives Slot 1 the state that belonged to Slot 2!)
+
+Result: Total internal state corruption and runtime crashes!
+
+================================================================================
+8. ASYNCHRONOUS DATA FETCHING & RACE CONDITIONS
+================================================================================
+When a component fetches data based on user input (e.g. changing project IDs in a dropdown), 
+network latency varies.
+
+The Race Condition Problem:
+1. User selects "Project A" (Request A begins, takes 1500ms).
+2. User selects "Project B" (Request B begins, takes 300ms).
+3. Request B finishes at 300ms -> Screen shows Project B.
+4. Request A finishes at 1500ms -> Screen overwrites with Project A!
+User is looking at Project B dropdown, but sees Project A data on screen!
+
+The Fix: Cleanup Flag or AbortController
+--------------------------------------------------------------------------------
+useEffect(()=>{
+  let isCurrent=true; // Flag to ignore stale responses
+
+  fetchProject(projectId).then(data=>{
+    if(isCurrent){
+      setProject(data);
+    }
+  });
+
+  return ()=>{
+    isCurrent=false; // Invalidate when projectId changes!
+  };
+},[projectId]);
+--------------------------------------------------------------------------------
+Output (o/p):
+Request A finishes late, sees `isCurrent === false`, and safely discards its data!
+
+================================================================================
+9. DEBOUNCING IN REACT: INSTANT INPUT WITH DELAYED OPERATIONS
+================================================================================
+When filtering 100 or 1,000 items, executing heavy filtering algorithms on every 
+single keystroke causes sluggish typing.
+
+Debouncing delays execution until the user PAUSES typing for a specified duration (e.g. 300ms).
+
+Code Example: `useDebounce` Hook
+--------------------------------------------------------------------------------
+export function useDebounce<T>(value: T,delay: number): T {
+  const [debouncedValue,setDebouncedValue]=useState<T>(value);
+
+  useEffect(()=>{
+    const handler=setTimeout(()=>{
+      setDebouncedValue(value);
+    },delay);
+
+    return ()=>{
+      clearTimeout(handler); // Reset timer if user types another letter!
+    };
+  },[value,delay]);
+
+  return debouncedValue;
+}
+--------------------------------------------------------------------------------
+Timeline & Output (o/p):
+Time 0ms:   User types "C"      -> Timer set for 300ms
+Time 100ms: User types "Co"     -> Timer cleared, new timer set for 300ms
+Time 200ms: User types "Con"    -> Timer cleared, new timer set for 300ms
+Time 500ms: User pauses (300ms elapsed) -> debouncedValue updates to "Con"!
+Result: Filter runs ONCE instead of 3 times. Typing remains at 60 FPS!
+
+================================================================================
+10. LINE-BY-LINE ARCHITECTURE OF DAY 7 EXERCISES
+================================================================================
+
+A. Exercise 1: `useFetch<T>` (`day7/exercises/exercise-1-use-fetch.ts`)
+- Generic `useFetch<T>(url: string)` returning `{ data, loading, error, refetch }`.
+- `AbortController` cleanup to cancel inflight requests when `url` changes or on unmount.
+- `refetch` function wrapped in `useCallback` to trigger manual reload.
+
+B. Exercise 2: `<ProjectDashboard>` (`day7/exercises/exercise-2-project-dashboard.tsx`)
+- Fetches live project metrics on mount.
+- Displays loading state and graceful error alerts with retry button.
+- Clean presentation cards: Progress (%), Budget Spent, Safety Score, Active Workers.
+
+C. Exercise 3: `useDebounce` & Activity Search (`day7/exercises/exercise-3-activity-search.tsx`)
+- `useDebounce(value, 300)` hook with timer cleanup.
+- Filters across 100 site activities dynamically without typing stutter.
+- Immediate input response with "Filtering..." status indicator.
+
+D. Exercise 4: `useLocalStorage` (`day7/exercises/exercise-4-local-storage-view.tsx`)
+- `useLocalStorage<T>(key, initialValue)` hook with JSON serialization.
+- SSR safe with try/catch error fallback.
+- Toggles and persists user preference (`'grid'` vs `'list'`) across browser reloads.
+
+================================================================================
+11. SELF-ASSESSMENT & INTERVIEW QUESTIONS
+================================================================================
+Q1: Why is thinking in `componentDidMount` harmful when writing `useEffect`?
+A1: Because effects are designed for synchronization, not lifecycle. An effect should 
+    synchronize state with an outside system. Thinking in mount/update leads to missed 
+    dependencies and stale state bugs.
+
+Q2: What is the difference between `useMemo` and `useCallback`?
+A2: `useMemo` caches the RESULT of a function calculation (`useMemo(() => compute(), [deps])`).
+    `useCallback` caches the FUNCTION INSTANCE itself (`useCallback(() => doWork(), [deps])`).
+
+Q3: Why can't you put `useRef` in a `useEffect` dependency array?
+A3: Because mutating `ref.current` does NOT trigger a re-render. Since no re-render 
+    occurs, React will never notice that the ref changed.
+
+Q4: What causes a race condition in data fetching, and how do you resolve it?
+A4: Slower earlier requests completing after faster later requests, overwriting newer data. 
+    It is resolved using `AbortController` in the cleanup function or an `isCurrent` boolean flag.
+
+================================================================================
+END OF DAY 7 STUDY MATERIAL
+================================================================================
