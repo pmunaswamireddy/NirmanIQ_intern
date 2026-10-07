@@ -1,0 +1,156 @@
+================================================================================
+NIRMANIQ INTERNSHIP — DAY 8 COMPREHENSIVE STUDY MATERIAL
+SUBJECT: NEXT.JS APP ROUTER, SERVER COMPONENTS, & DYNAMIC ROUTING
+AUTHOR: Penumuru Madhu Sudhan Reddy
+================================================================================
+
+1. INTRODUCTION: NEXT.JS VS PLAIN CLIENT-SIDE REACT
+--------------------------------------------------------------------------------
+Traditional Single Page Applications (SPAs) built with Vite or Create React App
+render entirely on the client side:
+  1. Browser requests index.html -> Receives nearly empty <body> with a <script> tag.
+  2. Browser downloads and evaluates heavy JavaScript bundles (React, ReactDOM, libraries).
+  3. React mounts, runs useEffect(), issues API network calls, and finally displays UI.
+
+Disadvantages in Enterprise Construction Applications:
+  - Slow Initial Page Load (First Contentful Paint / FCP).
+  - High Time to Interactive (TTI) on mobile devices used on job sites.
+  - Zero SEO indexability (search engines see an empty <div id="root"></div>).
+  - Heavy client runtime dependencies and client-side credential leaks.
+
+Next.js App Router (introduced in Next 13 and refined in Next 14/15/16) transforms this:
+  - Server-First Architecture: Components render to HTML on the server by default.
+  - Zero Bundle Size for Server Components: Non-interactive logic, database clients,
+    and heavy markdown parsers stay strictly on the server.
+  - Streaming & Suspense: HTML begins streaming to the browser immediately, accompanied
+    by skeletons (<loading.tsx>) while asynchronous server queries resolve.
+
+
+2. APP ROUTER DIRECTORY CONVENTIONS & SPECIAL FILES
+--------------------------------------------------------------------------------
+In the App Router, folders define URL segments, while special file names define UI behavior:
+
+  File Name         Role & Behavior
+  ----------------  -------------------------------------------------------------
+  page.tsx          Defines the unique public UI for the route segment.
+  layout.tsx        Shared wrapper for a segment and its children (persists state on nav).
+  loading.tsx       Instant loading skeleton UI built on React Suspense.
+  error.tsx         Client-side Error Boundary catching runtime errors in children.
+  not-found.tsx     Fallback UI when notFound() is thrown.
+  route.ts          API route handler for GET, POST, PUT, DELETE REST endpoints.
+
+
+3. SERVER COMPONENTS VS CLIENT COMPONENTS
+--------------------------------------------------------------------------------
+Mental Model: "Server by Default, Client on Demand."
+
+  Feature               Server Component (RSC)            Client Component ('use client')
+  -------------------   -------------------------------   -------------------------------
+  Default in App Router Yes                               No (Requires 'use client' at top)
+  Execution Environment Server only                       Server (SSR) + Browser (Hydration)
+  Access to Window/DOM  No (undefined)                    Yes (window, document, navigator)
+  React Hooks           No (No useState, useEffect)       Yes (useState, useEffect, custom)
+  Event Listeners       No (No onClick, onChange)         Yes
+  Bundle Impact         0 bytes sent to client            Included in client JS bundle
+  Data Fetching         Direct async/await (DB/API)       fetch() inside useEffect or TanStack
+
+NirmanIQ Enterprise Rule:
+Keep data fetching, layouts, and page shells as Server Components. Extract only interactive
+islands (e.g., search filter pills, tab bars, dropdown menus) into Client Components.
+
+
+4. DYNAMIC ROUTING & NESTED SEGMENTS
+--------------------------------------------------------------------------------
+In App Router, dynamic URL paths are created using folder bracket notation:
+
+  Route Syntax          Example Folder Structure           URL Matches
+  -------------------   --------------------------------   -----------------------------
+  Dynamic Segment       app/projects/[id]/page.tsx         /projects/proj-101
+  Nested Dynamic        app/projects/[id]/towers/[tId]/    /projects/proj-101/towers/tw-a
+  Catch-all             app/docs/[...slug]/page.tsx        /docs/safety/scaffolding/ppe
+  Optional Catch-all    app/docs/[[...slug]]/page.tsx      /docs or /docs/safety
+
+Extracting Route Parameters (Next.js 15+ Async Convention):
+  interface PageProps {
+    params: Promise<{ id: string }>;
+  }
+  export default async function ProjectPage({ params }: PageProps) {
+    const { id } = await params;
+    const project = await getProjectById(id);
+    return <h1>{project.name}</h1>;
+  }
+
+
+5. METADATA API & DYNAMIC SEO
+--------------------------------------------------------------------------------
+Next.js provides built-in search engine optimization support via static or dynamic metadata:
+
+  // Static Metadata
+  export const metadata: Metadata = {
+    title: 'Site Intelligence — BuildTrack IQ',
+    description: 'Real-time telemetry and milestone tracking.'
+  };
+
+  // Dynamic Metadata
+  export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+    const { id } = await params;
+    const project = await getProjectById(id);
+    return {
+      title: `${project.name} | BuildTrack IQ`,
+      description: project.description
+    };
+  }
+
+
+6. READING SEARCH PARAMETERS & FILTERING (EXERCISE 4)
+--------------------------------------------------------------------------------
+Server Components receive searchParams directly:
+  interface PageProps {
+    searchParams: Promise<{ status?: string }>;
+  }
+  export default async function ProjectsPage({ searchParams }: PageProps) {
+    const { status } = await searchParams;
+    const filtered = await getProjects(status); // 'active', 'delayed', etc.
+    return <ProjectsList data={filtered} />;
+  }
+
+Client Components use the useSearchParams() hook:
+  'use client';
+  import { useSearchParams } from 'next/navigation';
+
+  export function FilterBadge() {
+    const searchParams = useSearchParams();
+    const status = searchParams.get('status') || 'all';
+    return <span>Current: {status}</span>;
+  }
+
+
+7. CODE EXAMPLES & VERIFIED OUTPUT (O/P)
+--------------------------------------------------------------------------------
+Snippet A: Direct Async Server Component Data Query
+```tsx
+// app/projects/page.tsx
+import { getProjects } from '@/lib/data';
+
+export default async function ProjectsPage() {
+  const projects = await getProjects('active');
+  return (
+    <ul>
+      {projects.map(p => <li key={p.id}>{p.name} ({p.progress}%)</li>)}
+    </ul>
+  );
+}
+```
+Output (o/p):
+  - Skyline Apex Residency (68%)
+  - Metro Central Logistics Park (45%)
+
+Snippet B: Nested Tower Detail Dynamic Resolution
+```tsx
+// app/projects/[id]/towers/[towerId]/page.tsx
+const result = await getTowerById('proj-101', 'tower-a');
+console.log(result.tower.name, result.tower.completedFloors, result.tower.floors);
+```
+Output (o/p):
+  Tower Alpha 18 24
+================================================================================

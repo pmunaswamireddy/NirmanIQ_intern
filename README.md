@@ -242,8 +242,8 @@ npm run day5:ex1
   **Run React Project:** `cd day7 && npm run dev` (Port 3007)
   </details>
 
-- [ ] **Day 8 — Next.js App Router & Routing**
-  <details>
+- [x] **Day 8 — Next.js App Router & Routing**
+  <details open>
   <summary>View Syllabus</summary>
 
   **Concepts (3 hrs):**
@@ -260,7 +260,9 @@ npm run day5:ex1
   - Exercise 3: Add `loading.tsx` skeletons for each page. Add `error.tsx` with a retry button.
   - Exercise 4: Make the projects list page read a `?status=active` search param and filter accordingly.
 
-  **Deliverable:** PR with working Next.js app. Navigation works, layouts nest correctly, loading states work.
+  **Deliverable:** PR with working Next.js app. Navigation works, layouts nest correctly, loading states work.  
+  **Completed Folder:** [`day8/`](day8/)  
+  **Run Next.js Project:** `cd day8 && npm run dev` (Port 3008)
   </details>
 
 - [ ] **Day 9 — Tailwind CSS & shadcn/ui**

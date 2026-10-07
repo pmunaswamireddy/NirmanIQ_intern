@@ -26,6 +26,10 @@
     "day6:build": "npm --prefix day6 run build",
     "day7:dev": "npm --prefix day7 run dev",
     "day7:build": "npm --prefix day7 run build",
+    "day8:dev": "npm --prefix day8 run dev",
+    "day8:build": "npm --prefix day8 run build",
+    "day8:start": "npm --prefix day8 run start",
+    "day8:test": "node --experimental-strip-types day8/test-day8.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "tsc -p tsconfig.json --noEmit",
     "build": "tsc -p tsconfig.json --noEmit"
@@ -39,6 +43,7 @@
     "vite": "^8.3.3"
   },
   "dependencies": {
+    "next": "^16.4.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
   }
