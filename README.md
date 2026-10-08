@@ -265,8 +265,8 @@ npm run day5:ex1
   **Run Next.js Project:** `cd day8 && npm run dev` (Port 3008)
   </details>
 
-- [ ] **Day 9 — Tailwind CSS & shadcn/ui**
-  <details>
+- [x] **Day 9 — Tailwind CSS & shadcn/ui**
+  <details open>
   <summary>View Syllabus</summary>
 
   **Concepts (2 hrs):**
@@ -282,7 +282,9 @@ npm run day5:ex1
   - Exercise 3: Build a "Create Project" dialog form using shadcn Dialog + form components — inputs for Name, Description, Start Date, Tower Count. Validation: all fields required, name 3-100 chars, tower count 1-50. Show inline errors.
   - Exercise 4: Build a toast notification system with Sonner — show success/error toasts on form submit. `toast.success('Project created')`, `toast.error('Failed to save')`.
 
-  **Deliverable:** PR with styled pages. Must look polished. Test on 360px, 768px, and 1024px viewports.
+  **Deliverable:** PR with styled pages. Must look polished. Test on 360px, 768px, and 1024px viewports.  
+  **Completed Folder:** [`day9/`](day9/)  
+  **Run Next.js Project:** `cd day9 && npm run dev` (Port 3009)
   </details>
 
 - [ ] **Day 10 — State Management & Data Fetching (TanStack React Query + Zustand)**
