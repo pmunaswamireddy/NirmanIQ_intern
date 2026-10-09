@@ -287,8 +287,8 @@ npm run day5:ex1
   **Run Next.js Project:** `cd day9 && npm run dev` (Port 3009)
   </details>
 
-- [ ] **Day 10 — State Management & Data Fetching (TanStack React Query + Zustand)**
-  <details>
+- [x] **Day 10 — State Management & Data Fetching (TanStack React Query + Zustand)**
+  <details open>
   <summary>View Syllabus</summary>
 
   **Concepts (3 hrs):**
@@ -305,7 +305,9 @@ npm run day5:ex1
   - Exercise 4: Wire up the Project List page: React Query for data fetching (projects, stats), Zustand for UI state (filters, view mode). Show how they work together.
   - **Friday Demo:** Walk through the complete Next.js app — dashboard, project list, project detail, create dialog. Show React Query devtools, caching behavior, and Zustand stores.
 
-  **Deliverable:** PR with full working frontend prototype. React Query hooks + Zustand stores must be type-safe.
+  **Deliverable:** PR with full working frontend prototype. React Query hooks + Zustand stores must be type-safe.  
+  **Completed Folder:** [`day10/`](day10/)  
+  **Run Next.js Project:** `cd day10 && npm run dev` (Port 3010)
   </details>
 
 ---

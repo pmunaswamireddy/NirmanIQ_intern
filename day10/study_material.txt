@@ -1,0 +1,109 @@
+================================================================================
+NIRMANIQ INTERNSHIP — DAY 10 COMPREHENSIVE STUDY MATERIAL
+SUBJECT: STATE MANAGEMENT & DATA FETCHING (TANSTACK REACT QUERY + ZUSTAND)
+AUTHOR: Penumuru Madhu Sudhan Reddy
+================================================================================
+
+1. INTRODUCTION: SERVER STATE VS CLIENT STATE
+--------------------------------------------------------------------------------
+In modern frontend engineering, applications manage two completely different
+types of state:
+
+  State Type     Characteristics                 Primary Solution
+  ------------   -----------------------------   -------------------------------
+  Server State   Persisted on server database,   TanStack React Query
+                 shared across multiple users,   (handles caching, deduplication,
+                 asynchronous, needs re-sync     stale-while-revalidate)
+
+  Client State   Synchronous UI state owned by   Zustand
+                 the local browser session       (lightweight, zero-boilerplate,
+                 (sidebar toggle, theme, modal)  localStorage persistence)
+
+NirmanIQ Enterprise Golden Rule:
+Never store server data inside Redux or global client state stores!
+Use React Query for server cache, and use Zustand for client-only UI state.
+
+
+2. TANSTACK REACT QUERY CORE CONCEPTS
+--------------------------------------------------------------------------------
+Key building blocks:
+  - QueryClient: The central cache orchestrator.
+  - QueryClientProvider: React Context providing the client to child components.
+  - useQuery: Hook for declarative data fetching. Accepts `queryKey` and `queryFn`.
+  - Automatic Caching: If two components request `queryKey: ['projects']`, only ONE
+    network request is made; results are deduplicated and shared.
+  - Stale-While-Revalidate: Displays cached data immediately while refreshing in
+    the background.
+
+Comparing Manual `useEffect` (Day 7) vs React Query (Day 10):
+  Feature                Manual useEffect + useState      TanStack React Query
+  --------------------   ---------------------------      ---------------------
+  Boilerplate            High (3 states + effect + cleanup) Minimal (1 hook call)
+  Caching                None (refetches on remount)      Automatic in-memory cache
+  Request Deduplication  None                             Built-in
+  Refetch on Focus       None                             Built-in
+
+
+3. MUTATIONS & OPTIMISTIC UPDATES (EXERCISE 2)
+--------------------------------------------------------------------------------
+A mutation modifies data on the server (POST, PUT, DELETE).
+Optimistic updates make the UI feel instantaneous:
+  1. `onMutate`: Cancel ongoing queries, snapshot current cache, and inject the
+     new item immediately with a temporary ID.
+  2. `onError`: If the network or server rejects the request, roll back cache
+     to the saved snapshot.
+  3. `onSettled`: Invalidate query (`queryClient.invalidateQueries`) to fetch the
+     real persisted server state.
+
+
+4. ZUSTAND CLIENT STATE MANAGEMENT (EXERCISE 3)
+--------------------------------------------------------------------------------
+Why NirmanIQ selects Zustand over Redux or Context API:
+  - Zero Boilerplate: No actions, reducers, dispatchers, or provider hell.
+  - Selective Re-rendering: Components only re-render when the selected piece
+    of state changes (`useUIStore(state => state.viewMode)`).
+  - TypeScript Native: Inferred types without heavy generic wrappers.
+  - Persist Middleware: One-line synchronization with browser localStorage.
+
+Example:
+  export const useUIStore = create((set) => ({
+    viewMode: 'grid',
+    setViewMode: (mode) => set({ viewMode: mode }),
+  }));
+
+
+5. CODE EXAMPLES & VERIFIED OUTPUT (O/P)
+--------------------------------------------------------------------------------
+Snippet A: Custom useProjects Query Hook
+```tsx
+import { useQuery } from '@tanstack/react-query';
+import { fetchProjects } from './api';
+
+export function useProjects() {
+  return useQuery({
+    queryKey: ['projects'],
+    queryFn: fetchProjects,
+  });
+}
+```
+Output (o/p):
+  {
+    data: [
+      { id: '1', name: 'Skyline Residency', status: 'active', progress: 70 },
+      { id: '2', name: 'Metro Logistics Hub', status: 'active', progress: 45 }
+    ],
+    isLoading: false,
+    isSuccess: true
+  }
+
+Snippet B: Zustand Auth Store Toggle
+```tsx
+const { isAuthenticated, login, logout } = useAuthStore.getState();
+console.log('Initial Auth:', isAuthenticated);
+logout();
+console.log('After Logout:', useAuthStore.getState().isAuthenticated);
+```
+Output (o/p):
+  Initial Auth: true
+  After Logout: false
+================================================================================
