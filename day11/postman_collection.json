@@ -1,0 +1,133 @@
+{
+  "info": {
+    "_postman_id": "day11-nestjs-api-collection",
+    "name": "NirmanIQ Day 11 — NestJS Projects & Towers API",
+    "description": "Postman collection covering all CRUD endpoints for Projects and nested Towers resources.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. GET All Projects",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3011/projects",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3011",
+          "path": ["projects"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "2. GET Single Project",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3011/projects/proj-1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3011",
+          "path": ["projects", "proj-1"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "3. POST Create Project",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Cyber Horizon IT Park\",\n  \"status\": \"planning\",\n  \"towerCount\": 4,\n  \"description\": \"State-of-the-art tech campus with LEED Gold specs.\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3011/projects",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3011",
+          "path": ["projects"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "4. PUT Update Project",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"completed\",\n  \"towerCount\": 5\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3011/projects/proj-1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3011",
+          "path": ["projects", "proj-1"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "5. DELETE Project",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3011/projects/proj-3",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3011",
+          "path": ["projects", "proj-3"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "6. GET Nested Towers",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3011/projects/proj-1/towers",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3011",
+          "path": ["projects", "proj-1", "towers"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "7. POST Create Tower Under Project",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Tower Gamma\",\n  \"floors\": 28\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3011/projects/proj-1/towers",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3011",
+          "path": ["projects", "proj-1", "towers"]
+        }
+      },
+      "response": []
+    }
+  ]
+}

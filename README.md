@@ -63,6 +63,25 @@ npm run build
 # Day 5: Git Workflow & HTML/CSS Foundations
 npm run day5:ex1
 # View UI deliverables: day5/index.html (or day5/exercises/exercise-2-tower-card.html)
+
+# Day 6: React Core Concepts
+npm --prefix day6 run test
+
+# Day 7: React Hooks & Side Effects
+npm --prefix day7 run test
+
+# Day 8: Next.js App Router & Routing
+npm run day8:test
+
+# Day 9: Tailwind CSS & shadcn/ui
+npm run day9:test
+
+# Day 10: State Management & Data Fetching (TanStack React Query + Zustand)
+npm run day10:test
+
+# Day 11: NestJS Architecture & First API
+npm run day11:test
+# Start API: npm run day11:start
 ```
 
 ---
@@ -314,8 +333,8 @@ npm run day5:ex1
 
 #### Week 3 (Days 11–15): Backend Foundations (NestJS + PostgreSQL)
 
-- [ ] **Day 11 — NestJS Architecture & First API**
-  <details>
+- [x] **Day 11 — NestJS Architecture & First API**
+  <details open>
   <summary>View Syllabus</summary>
 
   **Concepts (3 hrs):**
@@ -332,7 +351,9 @@ npm run day5:ex1
   - Exercise 3: Test all endpoints with Postman. Create a Postman collection with all 5 endpoints, sample request bodies, and expected responses.
   - Exercise 4: Add a `towers` module. `GET /projects/:id/towers`, `POST /projects/:id/towers`. Nested resources.
 
-  **Deliverable:** PR with NestJS API. Postman collection exported as JSON in repo. All endpoints working.
+  **Deliverable:** PR with NestJS API. Postman collection exported as JSON in repo. All endpoints working.  
+  **Completed Folder:** [`day11/`](day11/)  
+  **Run NestJS Project:** `cd day11 && npm run start` (Port 3011) | Automated tests: `npm run day11:test`
   </details>
 
 - [ ] **Day 12 — DTOs, Validation & Error Handling**

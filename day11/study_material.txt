@@ -1,0 +1,111 @@
+================================================================================
+NIRMANIQ INTERNSHIP — DAY 11 COMPREHENSIVE STUDY MATERIAL
+SUBJECT: NESTJS ARCHITECTURE, MODULES, CONTROLLERS & PROVIDERS
+AUTHOR: Penumuru Madhu Sudhan Reddy
+================================================================================
+
+1. INTRODUCTION: WHAT IS NESTJS?
+--------------------------------------------------------------------------------
+Node.js Express provides total flexibility, but in enterprise backend teams,
+total flexibility often leads to inconsistent spaghetti code:
+  - No standard folder structure.
+  - No unified dependency injection container.
+  - Difficult unit testing due to tightly-coupled database connections.
+
+NestJS is an enterprise-grade TypeScript framework inspired by Angular architecture:
+  - Layered Architecture: Strict separation between Modules, Controllers, and Services.
+  - Dependency Injection (DI): Inversion of Control handles object lifecycles automatically.
+  - Built-in Decorators: Declarative route definitions (@Get, @Post, @Body, @Param).
+  - Production-Ready: Out-of-the-box support for Microservices, WebSockets, and GraphQL.
+
+
+2. THE THREE-TIER NESTJS BUILDING BLOCKS
+--------------------------------------------------------------------------------
+1. Modules (@Module):
+   The organizational boundaries of your application. Modules encapsulate related
+   controllers and services and control what is exported to other modules.
+   ```typescript
+   @Module({
+     controllers: [ProjectsController],
+     providers: [ProjectsService],
+     exports: [ProjectsService]
+   })
+   export class ProjectsModule {}
+   ```
+
+2. Controllers (@Controller):
+   Responsible for handling incoming HTTP requests and returning responses to the client.
+   Never put database queries or complex business calculations directly inside controllers!
+   ```typescript
+   @Controller('projects')
+   export class ProjectsController {
+     constructor(private readonly projectsService: ProjectsService) {}
+
+     @Get(':id')
+     getOne(@Param('id') id: string) {
+       return this.projectsService.findOne(id);
+     }
+   }
+   ```
+
+3. Providers / Services (@Injectable):
+   Houses the actual business logic, mathematical calculations, and data persistence.
+   Marked with `@Injectable()` so NestJS IoC container can instantiate and inject it.
+
+
+3. NESTED ROUTING ARCHITECTURE (EXERCISE 4)
+--------------------------------------------------------------------------------
+In construction telemetry, resources are hierarchical:
+  Project -> Tower -> Floor -> Activity
+
+To model nested REST resources in NestJS:
+  1. Base controller route includes the parent parameter:
+     `@Controller('projects/:id/towers')`
+  2. Extract parent parameter using `@Param('id')`:
+     `getTowers(@Param('id') projectId: string)`
+  3. Import the parent module (`ProjectsModule`) into the child module (`TowersModule`)
+     to access parent validation services through Dependency Injection.
+
+
+4. CODE EXAMPLES & VERIFIED OUTPUT (O/P)
+--------------------------------------------------------------------------------
+Snippet A: Projects Service In-Memory CRUD
+```typescript
+@Injectable()
+export class ProjectsService {
+  private projects = [
+    { id: 'proj-1', name: 'Skyline Residency', status: 'active', towerCount: 3 }
+  ];
+
+  findAll() { return this.projects; }
+
+  findOne(id: string) {
+    const p = this.projects.find(x => x.id === id);
+    if (!p) throw new NotFoundException(`Project ${id} not found.`);
+    return p;
+  }
+}
+```
+Output (o/p):
+  GET /projects -> [ { id: 'proj-1', name: 'Skyline Residency', status: 'active', towerCount: 3 } ]
+  GET /projects/proj-999 -> 404 Not Found: "Project proj-999 not found."
+
+Snippet B: Nested Tower Controller
+```typescript
+@Controller('projects/:id/towers')
+export class TowersController {
+  constructor(private readonly towersService: TowersService) {}
+
+  @Get()
+  getTowers(@Param('id') projectId: string) {
+    return this.towersService.findByProject(projectId);
+  }
+}
+```
+Output (o/p):
+  GET /projects/proj-1/towers ->
+  [
+    { id: 'tower-1', projectId: 'proj-1', name: 'Tower Alpha', floors: 24 },
+    { id: 'tower-2', projectId: 'proj-1', name: 'Tower Beta', floors: 20 }
+  ]
+================================================================================
