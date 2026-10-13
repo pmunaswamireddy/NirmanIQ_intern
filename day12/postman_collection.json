@@ -1,0 +1,164 @@
+{
+  "info": {
+    "name": "NirmanIQ Training - Day 12 (DTOs, Validation & Error Handling)",
+    "_postman_id": "day12-nestjs-validation",
+    "description": "Postman collection covering NestJS class-validator DTOs, forbidNonWhitelisted pipes, and custom AllExceptionsFilter",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Create Project (Valid)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Apex Tech Park\",\n  \"description\": \"Modern IT campus\",\n  \"status\": \"ACTIVE\",\n  \"towerCount\": 5\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3012/projects",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3012",
+          "path": ["projects"]
+        }
+      }
+    },
+    {
+      "name": "2. Create Project (Reject Non-Whitelisted Properties - 400)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Apex Tower\",\n  \"status\": \"PLANNING\",\n  \"towerCount\": 2,\n  \"unauthorizedRole\": \"admin\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3012/projects",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3012",
+          "path": ["projects"]
+        }
+      }
+    },
+    {
+      "name": "3. Create Project (Reject Short Name < 3 chars - 400)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"AB\",\n  \"status\": \"PLANNING\",\n  \"towerCount\": 2\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3012/projects",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3012",
+          "path": ["projects"]
+        }
+      }
+    },
+    {
+      "name": "4. Create Project (Reject Invalid Enum Status - 400)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Riverfront Tower\",\n  \"status\": \"NOT_ALLOWED\",\n  \"towerCount\": 3\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3012/projects",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3012",
+          "path": ["projects"]
+        }
+      }
+    },
+    {
+      "name": "5. Create Project (Reject Tower Count > 50 - 400)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Mega City\",\n  \"status\": \"ACTIVE\",\n  \"towerCount\": 99\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3012/projects",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3012",
+          "path": ["projects"]
+        }
+      }
+    },
+    {
+      "name": "6. Get Project Not Found (Consistent AppException Schema - 404)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3012/projects/proj-unknown",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3012",
+          "path": ["projects", "proj-unknown"]
+        }
+      }
+    },
+    {
+      "name": "7. Create Tower with Valid Nested Floors - 201",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Tower C\",\n  \"floors\": [\n    {\n      \"floorNumber\": 1,\n      \"status\": \"COMPLETED\"\n    },\n    {\n      \"floorNumber\": 2,\n      \"status\": \"IN_PROGRESS\"\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3012/projects/proj-1/towers",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3012",
+          "path": ["projects", "proj-1", "towers"]
+        }
+      }
+    },
+    {
+      "name": "8. Create Tower Reject Invalid Nested Floor Status - 400",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Tower D\",\n  \"floors\": [\n    {\n      \"floorNumber\": 1,\n      \"status\": \"HALTED\"\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3012/projects/proj-1/towers",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3012",
+          "path": ["projects", "proj-1", "towers"]
+        }
+      }
+    }
+  ]
+}

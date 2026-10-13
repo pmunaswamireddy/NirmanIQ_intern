@@ -41,6 +41,9 @@
     "day11:build": "npm --prefix day11 run build",
     "day11:start": "npm --prefix day11 run start",
     "day11:test": "npm --prefix day11 run test",
+    "day12:build": "npm --prefix day12 run build",
+    "day12:start": "npm --prefix day12 run start",
+    "day12:test": "npm --prefix day12 run test",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "tsc -p tsconfig.json --noEmit",
     "build": "tsc -p tsconfig.json --noEmit"

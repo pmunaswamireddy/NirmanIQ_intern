@@ -82,6 +82,10 @@ npm run day10:test
 # Day 11: NestJS Architecture & First API
 npm run day11:test
 # Start API: npm run day11:start
+
+# Day 12: DTOs, Validation & Error Handling
+npm run day12:test
+# Start API: npm run day12:start
 ```
 
 ---
@@ -356,8 +360,8 @@ npm run day11:test
   **Run NestJS Project:** `cd day11 && npm run start` (Port 3011) | Automated tests: `npm run day11:test`
   </details>
 
-- [ ] **Day 12 — DTOs, Validation & Error Handling**
-  <details>
+- [x] **Day 12 — DTOs, Validation & Error Handling**
+  <details open>
   <summary>View Syllabus</summary>
 
   **Concepts (2 hrs):**
@@ -371,10 +375,12 @@ npm run day11:test
   - Exercise 1: Create DTOs for all project endpoints — `CreateProjectDto`, `UpdateProjectDto`, `ProjectResponseDto`. All validated. `whitelist: true`.
   - Exercise 2: Add validation: project name (3-100 chars, trimmed), description (max 500), status (enum: PLANNING, ACTIVE, COMPLETED, ON_HOLD), tower count (1-50).
   - Exercise 3: Create a custom `AppException` class and a global exception filter that returns consistent error responses: `{ statusCode, message, error, timestamp, path }`.
-  - Exercise 4: Test validation — send invalid data to all endpoints via Postman. Verify correct 450 responses with descriptive messages.
+  - Exercise 4: Test validation — send invalid data to all endpoints via Postman. Verify correct 400 responses with descriptive messages.
   - Exercise 5: Create a `TowerDto` with nested validation — `@ValidateNested()` with `@Type(() => FloorDto)`.
 
-  **Deliverable:** PR with all DTOs. No endpoint accepts unvalidated input. Test results documented.
+  **Deliverable:** PR with all DTOs. No endpoint accepts unvalidated input. Test results documented.  
+  **Completed Folder:** [`day12/`](day12/)  
+  **Run NestJS Project:** `cd day12 && npm run start` (Port 3012) | Automated tests: `npm run day12:test`
   </details>
 
 - [ ] **Day 13 — PostgreSQL & TypeORM**
