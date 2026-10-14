@@ -49,7 +49,7 @@
 Navigate into the `day6` folder and run standard React project commands:
 
 ```bash
-cd day6
+cd day06
 
 # Start local development server with Hot Module Replacement (Port 3006):
 npm run dev

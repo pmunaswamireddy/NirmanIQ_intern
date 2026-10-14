@@ -61,9 +61,9 @@ npm run day1:ex2
 npm run day1:ex3
 
 # or directly with node:
-node day1/exercises/exercise-1-python-to-js.js
-node day1/exercises/exercise-2-destructuring.js
-node day1/exercises/exercise-3-array-methods.js
+node day01/exercises/exercise-1-python-to-js.js
+node day01/exercises/exercise-2-destructuring.js
+node day01/exercises/exercise-3-array-methods.js
 ```
 
 ---

@@ -45,7 +45,7 @@ Author: Penumuru Madhu Sudhan Reddy
 Navigate into the `day9` folder:
 
 ```bash
-cd day9
+cd day09
 
 # Start local dev server (Port 3009):
 npm run dev

@@ -50,10 +50,10 @@ npm run day4:ex3
 npm run day4:ex4
 
 # or directly with node (Node 22+ type stripping):
-node --experimental-strip-types day4/exercises/exercise-1-crud-dtos.ts
-node --experimental-strip-types day4/exercises/exercise-2-type-guards.ts
-node --experimental-strip-types day4/exercises/exercise-3-project-setup.ts
-node --experimental-strip-types day4/exercises/exercise-4-eslint-demo.ts
+node --experimental-strip-types day04/exercises/exercise-1-crud-dtos.ts
+node --experimental-strip-types day04/exercises/exercise-2-type-guards.ts
+node --experimental-strip-types day04/exercises/exercise-3-project-setup.ts
+node --experimental-strip-types day04/exercises/exercise-4-eslint-demo.ts
 
 # strict typecheck & lint checks:
 npm run typecheck

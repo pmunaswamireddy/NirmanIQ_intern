@@ -34,14 +34,14 @@ Author: Penumuru Madhu Sudhan Reddy
 
 ### 1. Run the Next.js Dev Server (Port 3008)
 ```bash
-cd day8
+cd day08
 npm run dev
 ```
 Open [http://localhost:3008](http://localhost:3008) in your browser.
 
 ### 2. Build for Production
 ```bash
-cd day8
+cd day08
 npm run build
 ```
 

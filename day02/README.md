@@ -102,9 +102,9 @@ npm run day2:ex2
 npm run day2:ex3
 
 # or directly with node:
-node day2/exercises/exercise-1-parallel-fetch.js
-node day2/exercises/exercise-2-retry-fetch.js
-node day2/exercises/exercise-3-task-queue.js
+node day02/exercises/exercise-1-parallel-fetch.js
+node day02/exercises/exercise-2-retry-fetch.js
+node day02/exercises/exercise-3-task-queue.js
 ```
 
 ---

@@ -12,7 +12,7 @@
 ## How This Works
 
 - Each day has **Concepts** (theory/reading, ~2-3 hrs) and **Practical** (hands-on exercises, ~4-5 hrs).
-- Submit daily work via GitHub directly to `main` under each day's directory (e.g. `day1/`, `day2/`).
+- Submit daily work via GitHub directly to `main` under each day's directory (e.g. `day01/`, `day02/`).
 - Every Friday: **Demo Day** — you demo what you built that week (15 min).
 - Mentor reviews your code with feedback by next morning. Code quality bar rises each week.
 - **Checkpoint assessments** at Day 15, Day 30, and Day 45 — practical mini-projects graded on correctness, code quality, and completeness.

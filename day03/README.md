@@ -47,10 +47,10 @@ npm run day3:ex3
 npm run day3:ex4
 
 # or directly with node (Node 22+ type stripping):
-node --experimental-strip-types day3/exercises/exercise-1-project-models.ts
-node --experimental-strip-types day3/exercises/exercise-2-day1-in-ts.ts
-node --experimental-strip-types day3/exercises/exercise-3-generic-map.ts
-node --experimental-strip-types day3/exercises/exercise-4-discriminated-unions.ts
+node --experimental-strip-types day03/exercises/exercise-1-project-models.ts
+node --experimental-strip-types day03/exercises/exercise-2-day1-in-ts.ts
+node --experimental-strip-types day03/exercises/exercise-3-generic-map.ts
+node --experimental-strip-types day03/exercises/exercise-4-discriminated-unions.ts
 
 # strict typecheck with zero errors:
 npm run typecheck

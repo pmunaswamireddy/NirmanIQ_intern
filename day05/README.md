@@ -57,13 +57,13 @@ From the project root:
 # Run Git Kata simulation script:
 npm run day5:ex1
 # or:
-node day5/exercises/exercise-1-git-workflow.js
+node day05/exercises/exercise-1-git-workflow.js
 
 # Preview the HTML/CSS deliverables:
 # Open any of the following directly in your browser:
-day5/exercises/exercise-2-tower-card.html
-day5/exercises/exercise-3-responsive-nav.html
-day5/index.html
+day05/exercises/exercise-2-tower-card.html
+day05/exercises/exercise-3-responsive-nav.html
+day05/index.html
 ```
 
 ---
