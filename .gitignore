@@ -53,6 +53,7 @@ GEMINI.md
 .agents/
 docs/
 *.instruction*
-.git-kata-sandbox/
+# Generated meeting timetable graphic
+internship_meeting_schedule.png
 
 

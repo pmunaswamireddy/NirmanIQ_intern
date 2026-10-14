@@ -36,14 +36,14 @@
 
 ```bash
 # Day 1: Foundations
-node day1/exercises/exercise-1-python-to-js.js
-node day1/exercises/exercise-2-destructuring.js
-node day1/exercises/exercise-3-array-methods.js
+node day01/exercises/exercise-1-python-to-js.js
+node day01/exercises/exercise-2-destructuring.js
+node day01/exercises/exercise-3-array-methods.js
 
 # Day 2: Async JavaScript & Event Loop
-node day2/exercises/exercise-1-parallel-fetch.js
-node day2/exercises/exercise-2-retry-fetch.js
-node day2/exercises/exercise-3-task-queue.js
+node day02/exercises/exercise-1-parallel-fetch.js
+node day02/exercises/exercise-2-retry-fetch.js
+node day02/exercises/exercise-3-task-queue.js
 
 # Day 3: TypeScript Essentials (Part 1)
 npm run day3:ex1
@@ -62,13 +62,13 @@ npm run build
 
 # Day 5: Git Workflow & HTML/CSS Foundations
 npm run day5:ex1
-# View UI deliverables: day5/index.html (or day5/exercises/exercise-2-tower-card.html)
+# View UI deliverables: day05/index.html (or day05/exercises/exercise-2-tower-card.html)
 
 # Day 6: React Core Concepts
-npm --prefix day6 run test
+npm --prefix day06 run test
 
 # Day 7: React Hooks & Side Effects
-npm --prefix day7 run test
+npm --prefix day07 run test
 
 # Day 8: Next.js App Router & Routing
 npm run day8:test
@@ -137,7 +137,7 @@ npm run day12:test
   - Exercise 3: Array methods challenge — use `.map()`, `.filter()`, `.reduce()`, `.find()`, `.some()`, `.every()` on a dataset of 50 construction tasks (no for-loops allowed)
 
   **Deliverable:** PR with all exercises. README explaining 3 things that surprised you about JS vs Python.  
-  **Completed Folder:** [`day1/`](day1/)
+  **Completed Folder:** [`day01/`](day01/)
   </details>
 
 - [x] **Day 2 — Async JavaScript & the Event Loop**
@@ -157,7 +157,7 @@ npm run day12:test
   - Exercise 3: Build an async task queue — process N items with concurrency limit of 3 (simulates NirmanIQ's video processing queue)
 
   **Deliverable:** PR with exercises. Diagram (hand-drawn is fine) showing event loop for one of your exercises.  
-  **Completed Folder:** [`day2/`](day2/)
+  **Completed Folder:** [`day02/`](day02/)
   </details>
 
 - [x] **Day 3 — TypeScript Essentials (Part 1)**
@@ -179,7 +179,7 @@ npm run day12:test
   - Exercise 4: Use discriminated unions to model NirmanIQ task states: `{ status: 'pending' }`, `{ status: 'in_progress', assignee: string }`, `{ status: 'completed', completedAt: Date, reviewer: string }`
 
   **Deliverable:** PR with exercises. All must compile with `tsc --strict` and zero errors.  
-  **Completed Folder:** [`day3/`](day3/)
+  **Completed Folder:** [`day03/`](day03/)
   </details>
 
 - [x] **Day 4 — TypeScript Essentials (Part 2) + Tooling**
@@ -200,7 +200,7 @@ npm run day12:test
   - Exercise 4: Configure and run ESLint — intentionally introduce 5 lint violations, then fix them
 
   **Deliverable:** PR with working TypeScript project. `npm run lint` and `npm run build` must pass.  
-  **Completed Folder:** [`day4/`](day4/)
+  **Completed Folder:** [`day04/`](day04/)
   </details>
 
 - [x] **Day 5 — Git Workflow & HTML/CSS Foundations**
@@ -221,7 +221,7 @@ npm run day12:test
   - **Friday Demo:** Show the Tower Progress Card on different screen sizes. Explain Git workflow.
 
   **Deliverable:** PR following our branching convention. HTML passes WAVE accessibility checker.  
-  **Completed Folder:** [`day5/`](day5/)
+  **Completed Folder:** [`day05/`](day05/)
   </details>
 
 ---
@@ -246,8 +246,8 @@ npm run day12:test
   - Exercise 3: Build a `<FloorGrid>` — display a 5x4 grid of floors in a tower. Each floor shows status (not-started, in-progress, completed). Click a floor to toggle status.
 
   **Deliverable:** PR with all components. Each must be type-safe and render without console errors.  
-  **Completed Folder:** [`day6/`](day6/)  
-  **Run React Project:** `cd day6 && npm run dev` (Port 3006)
+  **Completed Folder:** [`day06/`](day06/)  
+  **Run React Project:** `cd day06 && npm run dev` (Port 3006)
   </details>
 
 - [x] **Day 7 — React Hooks & Side Effects**
@@ -268,8 +268,8 @@ npm run day12:test
   - Exercise 4: Build `useLocalStorage<T>(key, initialValue)` — persist state to localStorage. Use it to remember the user's preferred dashboard view (grid vs list).
 
   **Deliverable:** PR with all hooks and components. Hooks must be generic and reusable.  
-  **Completed Folder:** [`day7/`](day7/)  
-  **Run React Project:** `cd day7 && npm run dev` (Port 3007)
+  **Completed Folder:** [`day07/`](day07/)  
+  **Run React Project:** `cd day07 && npm run dev` (Port 3007)
   </details>
 
 - [x] **Day 8 — Next.js App Router & Routing**
@@ -291,8 +291,8 @@ npm run day12:test
   - Exercise 4: Make the projects list page read a `?status=active` search param and filter accordingly.
 
   **Deliverable:** PR with working Next.js app. Navigation works, layouts nest correctly, loading states work.  
-  **Completed Folder:** [`day8/`](day8/)  
-  **Run Next.js Project:** `cd day8 && npm run dev` (Port 3008)
+  **Completed Folder:** [`day08/`](day08/)  
+  **Run Next.js Project:** `cd day08 && npm run dev` (Port 3008)
   </details>
 
 - [x] **Day 9 — Tailwind CSS & shadcn/ui**
@@ -313,8 +313,8 @@ npm run day12:test
   - Exercise 4: Build a toast notification system with Sonner — show success/error toasts on form submit. `toast.success('Project created')`, `toast.error('Failed to save')`.
 
   **Deliverable:** PR with styled pages. Must look polished. Test on 360px, 768px, and 1024px viewports.  
-  **Completed Folder:** [`day9/`](day9/)  
-  **Run Next.js Project:** `cd day9 && npm run dev` (Port 3009)
+  **Completed Folder:** [`day09/`](day09/)  
+  **Run Next.js Project:** `cd day09 && npm run dev` (Port 3009)
   </details>
 
 - [x] **Day 10 — State Management & Data Fetching (TanStack React Query + Zustand)**
