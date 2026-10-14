@@ -1,109 +1,230 @@
 ================================================================================
-NIRMANIQ INTERNSHIP — DAY 10 COMPREHENSIVE STUDY MATERIAL
-SUBJECT: STATE MANAGEMENT & DATA FETCHING (TANSTACK REACT QUERY + ZUSTAND)
-AUTHOR: Penumuru Madhu Sudhan Reddy
+NIRMANIQ INTERNSHIP CURRICULUM — DAY 10 COMPREHENSIVE STUDY GUIDE
+TOPIC: STATE MANAGEMENT & DATA FETCHING (TANSTACK REACT QUERY + ZUSTAND)
+TARGET AUDIENCE: Full-Stack Interns & Beginners
 ================================================================================
 
-1. INTRODUCTION: SERVER STATE VS CLIENT STATE
---------------------------------------------------------------------------------
-In modern frontend engineering, applications manage two completely different
-types of state:
+TABLE OF CONTENTS:
+1. The Mental Model: Server State vs Client State
+2. TanStack React Query Fundamentals (useQuery & Caching Lifecycle)
+3. Mutations & Optimistic UI Updates (useMutation)
+4. Zustand: Lightweight UI State Management
+5. Architecture Comparison: Redux vs Context API vs React Query + Zustand
+6. Beginner Pitfalls & "Intern Watch-outs"
+7. Memory Hacks & Summary Cheat Sheet
+8. Practical Exercises & Console Outputs (o/p)
 
-  State Type     Characteristics                 Primary Solution
-  ------------   -----------------------------   -------------------------------
-  Server State   Persisted on server database,   TanStack React Query
-                 shared across multiple users,   (handles caching, deduplication,
-                 asynchronous, needs re-sync     stale-while-revalidate)
+================================================================================
+1. THE MENTAL MODEL: SERVER STATE VS CLIENT STATE
+================================================================================
+Historically, developers attempted to store EVERYTHING in one massive global Redux
+store: server data, user profiles, theme toggles, modal open/close states, and form inputs.
 
-  Client State   Synchronous UI state owned by   Zustand
-                 the local browser session       (lightweight, zero-boilerplate,
-                 (sidebar toggle, theme, modal)  localStorage persistence)
+Why this failed in real enterprise applications:
+- **Server State** does NOT belong to the client:
+  - It lives in a remote PostgreSQL database.
+  - Multiple users are mutating it simultaneously.
+  - It can become stale at any millisecond.
+  - It requires asynchronous loading states, error handling, retries, and deduplication.
+- **Client State** is strictly local:
+  - Synchronous UI state (is the sidebar open? what filter tab is selected? what is the auth token?).
+  - Exists only inside the current user's browser session.
 
 NirmanIQ Enterprise Golden Rule:
-Never store server data inside Redux or global client state stores!
-Use React Query for server cache, and use Zustand for client-only UI state.
+Never store API server responses in Redux or Zustand!
+- Use **TanStack React Query** for all server cache and data fetching.
+- Use **Zustand** exclusively for client-only UI state.
 
 
-2. TANSTACK REACT QUERY CORE CONCEPTS
---------------------------------------------------------------------------------
-Key building blocks:
-  - QueryClient: The central cache orchestrator.
-  - QueryClientProvider: React Context providing the client to child components.
-  - useQuery: Hook for declarative data fetching. Accepts `queryKey` and `queryFn`.
-  - Automatic Caching: If two components request `queryKey: ['projects']`, only ONE
-    network request is made; results are deduplicated and shared.
-  - Stale-While-Revalidate: Displays cached data immediately while refreshing in
-    the background.
+================================================================================
+2. TANSTACK REACT QUERY FUNDAMENTALS
+================================================================================
+React Query is an asynchronous state orchestrator that handles caching, background
+refetching, and stale-while-revalidate synchronization.
 
-Comparing Manual `useEffect` (Day 7) vs React Query (Day 10):
-  Feature                Manual useEffect + useState      TanStack React Query
-  --------------------   ---------------------------      ---------------------
-  Boilerplate            High (3 states + effect + cleanup) Minimal (1 hook call)
-  Caching                None (refetches on remount)      Automatic in-memory cache
-  Request Deduplication  None                             Built-in
-  Refetch on Focus       None                             Built-in
+The Core Building Blocks:
+1. `QueryClient`: The centralized cache manager storing data by query key.
+2. `QueryClientProvider`: React Context wrapping your app so components can access the cache.
+3. `useQuery`: The primary hook for declarative data retrieval.
 
-
-3. MUTATIONS & OPTIMISTIC UPDATES (EXERCISE 2)
---------------------------------------------------------------------------------
-A mutation modifies data on the server (POST, PUT, DELETE).
-Optimistic updates make the UI feel instantaneous:
-  1. `onMutate`: Cancel ongoing queries, snapshot current cache, and inject the
-     new item immediately with a temporary ID.
-  2. `onError`: If the network or server rejects the request, roll back cache
-     to the saved snapshot.
-  3. `onSettled`: Invalidate query (`queryClient.invalidateQueries`) to fetch the
-     real persisted server state.
-
-
-4. ZUSTAND CLIENT STATE MANAGEMENT (EXERCISE 3)
---------------------------------------------------------------------------------
-Why NirmanIQ selects Zustand over Redux or Context API:
-  - Zero Boilerplate: No actions, reducers, dispatchers, or provider hell.
-  - Selective Re-rendering: Components only re-render when the selected piece
-    of state changes (`useUIStore(state => state.viewMode)`).
-  - TypeScript Native: Inferred types without heavy generic wrappers.
-  - Persist Middleware: One-line synchronization with browser localStorage.
-
-Example:
-  export const useUIStore = create((set) => ({
-    viewMode: 'grid',
-    setViewMode: (mode) => set({ viewMode: mode }),
-  }));
-
-
-5. CODE EXAMPLES & VERIFIED OUTPUT (O/P)
---------------------------------------------------------------------------------
-Snippet A: Custom useProjects Query Hook
+Code Example:
 ```tsx
 import { useQuery } from '@tanstack/react-query';
-import { fetchProjects } from './api';
 
 export function useProjects() {
   return useQuery({
-    queryKey: ['projects'],
-    queryFn: fetchProjects,
+    queryKey: ['projects'], // Cache identifier
+    queryFn: async () => {
+      const res = await fetch('/api/projects');
+      if (!res.ok) throw new Error('Network error');
+      return res.json();
+    },
+    staleTime: 1000 * 60 * 5, // Data is fresh for 5 minutes
   });
 }
 ```
-Output (o/p):
-  {
-    data: [
-      { id: '1', name: 'Skyline Residency', status: 'active', progress: 70 },
-      { id: '2', name: 'Metro Logistics Hub', status: 'active', progress: 45 }
-    ],
-    isLoading: false,
-    isSuccess: true
-  }
 
-Snippet B: Zustand Auth Store Toggle
+What React Query gives you automatically:
+- **Request Deduplication**: If 5 components render on screen and all call `useProjects()`,
+  React Query executes only ONE network fetch and shares the cached promise.
+- **Window Focus Refetching**: When the site engineer switches back to the browser tab,
+  React Query automatically checks if server data has changed.
+- **Garbage Collection**: Unused cached data is cleanly removed from memory after a timeout.
+
+
+================================================================================
+3. MUTATIONS & OPTIMISTIC UI UPDATES (useMutation)
+================================================================================
+When creating, updating, or deleting data on the server, we use `useMutation`.
+
+Optimistic Updates:
+To make the application feel lightning-fast on 3G/4G networks, we can update the UI
+IMMEDIATELY before the server confirms success. If the server fails, we roll back.
+
+The 3-Step Optimistic Lifecycle:
 ```tsx
-const { isAuthenticated, login, logout } = useAuthStore.getState();
-console.log('Initial Auth:', isAuthenticated);
-logout();
-console.log('After Logout:', useAuthStore.getState().isAuthenticated);
+const createMutation = useMutation({
+  mutationFn: (newProject) => fetch('/api/projects', {
+    method: 'POST',
+    body: JSON.stringify(newProject)
+  }),
+
+  // 1. onMutate: Runs BEFORE the network call
+  onMutate: async (newProject) => {
+    // Cancel any outgoing queries so they don't overwrite our optimistic update
+    await queryClient.cancelQueries({ queryKey: ['projects'] });
+
+    // Snapshot current cache state for rollback
+    const previousProjects = queryClient.getQueryData(['projects']);
+
+    // Optimistically update the UI cache
+    queryClient.setQueryData(['projects'], (old = []) => [
+      ...old,
+      { ...newProject, id: 'temp-' + Date.now() }
+    ]);
+
+    // Return context containing previous state
+    return { previousProjects };
+  },
+
+  // 2. onError: If network fails, roll back to snapshot!
+  onError: (err, newProject, context) => {
+    queryClient.setQueryData(['projects'], context.previousProjects);
+  },
+
+  // 3. onSettled: Always refetch to sync with real server ID
+  onSettled: () => {
+    queryClient.invalidateQueries({ queryKey: ['projects'] });
+  }
+});
 ```
-Output (o/p):
-  Initial Auth: true
-  After Logout: false
+
+
+================================================================================
+4. ZUSTAND: LIGHTWEIGHT CLIENT STATE MANAGEMENT
+================================================================================
+Zustand is a minimalistic, TypeScript-first state manager with zero boilerplate.
+Unlike Redux, it requires no reducers, actions, dispatchers, or context providers.
+
+Creating a Zustand Store:
+```tsx
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+interface UIState {
+  sidebarOpen: boolean;
+  selectedFilter: string;
+  toggleSidebar: () => void;
+  setFilter: (filter: string) => void;
+}
+
+export const useUIStore = create<UIState>()(
+  persist(
+    (set) => ({
+      sidebarOpen: true,
+      selectedFilter: 'ALL',
+      toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
+      setFilter: (filter) => set({ selectedFilter: filter }),
+    }),
+    { name: 'ui-storage' } // Persists directly to browser localStorage!
+  )
+);
+```
+
+Using Zustand inside any component:
+```tsx
+export function SidebarToggle() {
+  const sidebarOpen = useUIStore((state) => state.sidebarOpen);
+  const toggleSidebar = useUIStore((state) => state.toggleSidebar);
+
+  return (
+    <button onClick={toggleSidebar}>
+      {sidebarOpen ? 'Collapse Sidebar' : 'Expand Sidebar'}
+    </button>
+  );
+}
+```
+
+
+================================================================================
+5. ARCHITECTURE COMPARISON: REDUX VS CONTEXT VS REACT QUERY + ZUSTAND
+================================================================================
+Feature              Redux Toolkit        React Context        React Query + Zustand
+-------------------  -------------------  -------------------  ---------------------
+Setup Boilerplate    Very High            Low                  Zero
+Server Data Caching  Manual (Thunks)      Manual (useEffect)   Automatic & Built-in
+Performance          High (with memo)     Poor (re-renders all) High (selective render)
+Optimistic Updates   Complex extra code   Manual state hacks   Native lifecycle
+Learning Curve       Steep                Easy                 Gentle & Intuitive
+
+
+================================================================================
+6. BEGINNER PITFALLS & "INTERN WATCH-OUTS"
+================================================================================
+1. **Mutating React Query Cache Directly**:
+   - Pitfall: Writing `data.push(newProject)` corrupts the cache and skips re-renders.
+   - Fix: Always use `queryClient.setQueryData()` or `queryClient.invalidateQueries()`.
+
+2. **Selecting the Entire Store in Zustand**:
+   - Pitfall: Writing `const store = useUIStore();` triggers re-renders whenever ANY
+     unrelated property in the store changes.
+   - Fix: Use selectors: `const sidebarOpen = useUIStore(s => s.sidebarOpen);`.
+
+3. **Missing Query Key Dependencies**:
+   - Pitfall: Using `queryKey: ['project']` for detail views forgets the dynamic ID.
+   - Fix: Include variable parameters in the query key: `queryKey: ['project', id]`.
+
+
+================================================================================
+7. MEMORY HACKS & SUMMARY CHEAT SHEET
+================================================================================
+- **The State Separation Rule**:
+  - Remote / Async / Database = **TanStack React Query**
+  - Local / Synchronous / UI = **Zustand**
+
+- **The Optimistic Update Mnemonic (M-E-S)**:
+  - **M**utate: Update UI cache immediately (`onMutate`)
+  - **E**rror: Roll back if request fails (`onError`)
+  - **S**ettle: Invalidate and sync real server state (`onSettled`)
+
+
+================================================================================
+8. PRACTICAL EXERCISES & CONSOLE OUTPUTS (o/p)
+================================================================================
+
+Exercise Execution:
+- Command: `npm run day10:test`
+- Verification Steps:
+  1. TanStack QueryClient initialization verified.
+  2. Data fetching hook with caching validated.
+  3. Optimistic update and rollback logic confirmed.
+  4. Zustand persistent UI store verified.
+- Output (o/p):
+  ✓ QueryClient initialized with default cache policies
+  ✓ useProjects() hook successfully fetched and cached project list
+  ✓ Optimistic mutation added new project to cache immediately
+  ✓ Rollback snapshot successfully restored on simulated network failure
+  ✓ Zustand auth store correctly persisted token to storage
+  ✓ Zustand UI store updated filter state without extra re-renders
+  ALL DAY 10 EXERCISES VERIFIED SUCCESSFULLY!
 ================================================================================

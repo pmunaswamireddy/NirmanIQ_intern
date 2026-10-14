@@ -80,10 +80,17 @@ npm run day9:test
 npm run day10:test
 
 # Day 11: NestJS Architecture & First API
+npm run day11:ex1
+npm run day11:ex2
+npm run day11:ex3
 npm run day11:test
 # Start API: npm run day11:start
 
 # Day 12: DTOs, Validation & Error Handling
+npm run day12:ex1
+npm run day12:ex2
+npm run day12:ex3
+npm run day12:ex4
 npm run day12:test
 # Start API: npm run day12:start
 ```
