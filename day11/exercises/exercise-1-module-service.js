@@ -1,11 +1,11 @@
-// Day 11 - Exercise 1: Understanding NestJS Dependency Injection
-// An intern-friendly demonstration of how Controllers and Services communicate
+// Day 11 - Exercise 1: Modules and Services
+// Author: Penumuru Madhu Sudhan Reddy
 
 class ProjectsService {
   constructor() {
-    this.projects = [
-      { id: 'proj-1', name: 'Skyline Commercial Park', status: 'ACTIVE' },
-      { id: 'proj-2', name: 'Greenfield Residency', status: 'PLANNING' }
+    this.projects=[
+      {id:'proj-1',name:'Skyline Commercial Park',status:'ACTIVE'},
+      {id:'proj-2',name:'Greenfield Residency',status:'PLANNING'}
     ];
   }
 
@@ -14,42 +14,47 @@ class ProjectsService {
   }
 
   findById(id) {
-    return this.projects.find(p => p.id === id);
+    const item=this.projects.find(p=>p.id===id);
+    return item||null;
+  }
+
+  create(name,status='PLANNING') {
+    const newProj={id:`proj-${Date.now()}`,name,status};
+    this.projects.push(newProj);
+    return newProj;
   }
 }
 
 class ProjectsController {
-  // In NestJS, this is injected automatically via the constructor:
-  // constructor(private readonly projectsService: ProjectsService) {}
   constructor(projectsService) {
-    this.projectsService = projectsService;
+    this.projectsService=projectsService;
   }
 
   getProjects() {
-    console.log('[Controller] GET /projects called -> Delegating to service...');
     return this.projectsService.findAll();
   }
 
   getProjectById(id) {
-    console.log(`[Controller] GET /projects/${id} called -> Delegating to service...`);
-    const project = this.projectsService.findById(id);
-    if (!project) {
-      return { error: 'Project not found', status: 404 };
+    const res=this.projectsService.findById(id);
+    if (!res) {
+      return {error:'Project not found',statusCode:404};
     }
-    return project;
+    return res;
+  }
+
+  addProject(name,status) {
+    if (!name||name.trim().length<3) {
+      return {error:'Invalid project name',statusCode:400};
+    }
+    return this.projectsService.create(name.trim(),status);
   }
 }
 
-// Running the exercise
-console.log('--- EXERCISE 1: MODULE & SERVICE DEPENDENCY INJECTION ---');
-const service = new ProjectsService();
-const controller = new ProjectsController(service);
+// test manual DI wiring
+const service=new ProjectsService();
+const controller=new ProjectsController(service);
 
-console.log('1. Fetch all projects:');
-console.log(controller.getProjects());
-
-console.log('\n2. Fetch project by ID (proj-1):');
-console.log(controller.getProjectById('proj-1'));
-
-console.log('\n3. Fetch non-existent project (proj-999):');
-console.log(controller.getProjectById('proj-999'));
+console.log('All projects:',controller.getProjects());
+console.log('Get proj-1:',controller.getProjectById('proj-1'));
+console.log('Get invalid:',controller.getProjectById('proj-404'));
+console.log('Create new:',controller.addProject('Apex Towers','ACTIVE'));

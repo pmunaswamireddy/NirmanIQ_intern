@@ -1,52 +1,40 @@
-// Day 12 - Exercise 2: Mass Assignment Protection
-// Demonstrates whitelist: true and forbidNonWhitelisted: true
+// Day 12 - Exercise 2: Mass Assignment Filtering
+// Author: Penumuru Madhu Sudhan Reddy
 
-const ALLOWED_DTO_KEYS = ['name', 'description', 'status', 'towerCount'];
+const ALLOWED_KEYS=['name','description','status','towerCount'];
 
-function processPayload(payload, { whitelist = true, forbidNonWhitelisted = true }) {
-  const payloadKeys = Object.keys(payload);
-  const forbiddenKeys = payloadKeys.filter(k => !ALLOWED_DTO_KEYS.includes(k));
+function sanitizePayload(body,options={whitelist:true,forbidNonWhitelisted:true}) {
+  const incomingKeys=Object.keys(body);
+  const forbidden=incomingKeys.filter(k=>!ALLOWED_KEYS.includes(k));
 
-  if (forbidNonWhitelisted && forbiddenKeys.length > 0) {
+  if (options.forbidNonWhitelisted&&forbidden.length>0) {
     return {
-      status: 400,
-      error: 'Bad Request',
-      message: forbiddenKeys.map(k => `property ${k} should not exist`)
+      statusCode:400,
+      error:'Bad Request',
+      message:forbidden.map(k=>`property ${k} should not exist`)
     };
   }
 
-  if (whitelist) {
-    const cleanObject = {};
-    for (const key of ALLOWED_DTO_KEYS) {
-      if (payload[key] !== undefined) {
-        cleanObject[key] = payload[key];
-      }
+  if (options.whitelist) {
+    const clean={};
+    for (const key of ALLOWED_KEYS) {
+      if (body[key]!==undefined) clean[key]=body[key];
     }
-    return { status: 200, data: cleanObject };
+    return {statusCode:200,data:clean};
   }
 
-  return { status: 200, data: payload };
+  return {statusCode:200,data:body};
 }
 
-console.log('--- EXERCISE 2: MASS ASSIGNMENT PROTECTION ---');
-
-// Case 1: Attack payload trying to inject admin privileges
-const maliciousPayload = {
-  name: 'Riverfront Residency',
-  status: 'PLANNING',
-  towerCount: 3,
-  role: 'SUPERADMIN',
-  isAdmin: true
+// test payload injection
+const attackPayload={
+  name:'Apex City',
+  status:'PLANNING',
+  towerCount:3,
+  role:'ADMIN',
+  isAdmin:true
 };
+console.log('Injection test:',sanitizePayload(attackPayload));
 
-console.log('Testing Malicious Payload with forbidNonWhitelisted: true');
-console.log(processPayload(maliciousPayload, { whitelist: true, forbidNonWhitelisted: true }));
-
-// Case 2: Clean valid payload
-const safePayload = {
-  name: 'Riverfront Residency',
-  status: 'PLANNING',
-  towerCount: 3
-};
-console.log('\nTesting Safe Payload:');
-console.log(processPayload(safePayload, { whitelist: true, forbidNonWhitelisted: true }));
+const normalPayload={name:'Apex City',status:'PLANNING',towerCount:3};
+console.log('Safe test:',sanitizePayload(normalPayload));
