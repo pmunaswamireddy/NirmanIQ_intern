@@ -8,7 +8,7 @@
     "build": "node --max-old-space-size=4096 ./node_modules/typescript/bin/tsc",
     "start": "node dist/main.js",
     "test": "node test-day13.cjs",
-    "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js -d src/data-source.ts",
+    "typeorm": "ts-node ./node_modules/typeorm/cli.js -d src/data-source.ts",
     "migration:run": "npm run typeorm migration:run",
     "migration:revert": "npm run typeorm migration:revert"
   },
