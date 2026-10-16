@@ -29,7 +29,7 @@ export class TowerEntity {
   @JoinColumn({ name: 'project_id' })
   project: ProjectEntity;
 
-  @OneToMany(() => FloorEntity, (floor) => floor.tower, { cascade: true })
+  @OneToMany(() => FloorEntity, (floor: FloorEntity) => floor.tower, { cascade: true })
   floors: FloorEntity[];
 
   @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })

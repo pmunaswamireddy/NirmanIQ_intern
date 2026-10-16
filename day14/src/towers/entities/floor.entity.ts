@@ -28,7 +28,7 @@ export class FloorEntity {
   @Column({ type: 'uuid', name: 'tower_id' })
   towerId: string;
 
-  @ManyToOne(() => TowerEntity, (tower) => tower.floors, { onDelete: 'CASCADE' })
+  @ManyToOne(() => TowerEntity, (tower: TowerEntity) => tower.floors, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'tower_id' })
   tower: TowerEntity;
 
