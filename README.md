@@ -390,8 +390,8 @@ npm run day12:test
   **Run NestJS Project:** `cd day12 && npm run start` (Port 3012) | Automated tests: `npm run day12:test`
   </details>
 
-- [ ] **Day 13 — PostgreSQL & TypeORM**
-  <details>
+- [x] **Day 13 — PostgreSQL & TypeORM**
+  <details open>
   <summary>View Syllabus</summary>
 
   **Concepts (3 hrs):**
@@ -408,7 +408,9 @@ npm run day12:test
   - Exercise 4: Update the NestJS services to use TypeORM repositories instead of in-memory arrays. All CRUD operations must work.
   - Exercise 5: Write a raw SQL query to get: "For each project, show the tower count, average floor completion %, and the tower with the highest risk." Then implement the same with TypeORM QueryBuilder.
 
-  **Deliverable:** PR with entities, migrations, and updated services. Docker Compose file for PostgreSQL.
+  **Deliverable:** PR with entities, migrations, and updated services. Docker Compose file for PostgreSQL.  
+  **Completed Folder:** [`day13/`](day13/)  
+  **Run NestJS Project:** `cd day13 && npm run start` (Port 3013) | Automated tests: `npm run day13:test`
   </details>
 
 - [ ] **Day 14 — Authentication & Guards**

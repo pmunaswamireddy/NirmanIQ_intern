@@ -1,0 +1,118 @@
+================================================================================
+NIRMANIQ INTERNSHIP — DAY 13 STUDY MATERIAL
+TOPIC: BACKEND FOUNDATIONS: POSTGRESQL & TYPEORM
+AUTHOR: PENUMURU MADHU SUDHAN REDDY
+================================================================================
+
+1. ARCHITECTURAL OVERVIEW
+--------------------------------------------------------------------------------
+Day 13 transitions our enterprise NestJS backend from volatile in-memory JavaScript
+arrays to a persistent, highly scalable relational database (PostgreSQL 16) using
+TypeORM.
+
+In construction intelligence software (like NirmanIQ), relational databases are
+non-negotiable because real-world construction entities exhibit strict hierarchical
+relationships:
+
+   [Project] 1 ──── * [Tower] 1 ──── * [Floor] 1 ──── * [Room] 1 ──── * [Task]
+
+A failure in any part of this tree (e.g. attempting to assign an inspection to a
+non-existent tower) must be rejected at the database engine level via Foreign Keys
+and ACID transactions.
+
+2. WHY POSTGRESQL OVER NOSQL (MONGODB) FOR CONSTRUCTION ERPS?
+--------------------------------------------------------------------------------
+A. ACID TRANSACTIONS (Atomicity, Consistency, Isolation, Durability)
+   When an engineer marks a 10th-floor slab as 'COMPLETED', three actions occur:
+   1. The floor's completion percentage is updated to 100%.
+   2. Cement and rebar inventory are decremented.
+   3. An immutable audit log entry is recorded.
+   In PostgreSQL, these 3 operations execute inside a single transaction. If any
+   step fails, the entire transaction rolls back, preventing data corruption.
+
+B. RELATIONAL INTEGRITY & FOREIGN KEYS
+   PostgreSQL enforces ON DELETE CASCADE / RESTRICT constraints on disk. You cannot
+   accidentally create orphan records or delete a project while active towers exist.
+
+C. ADVANCED AGGREGATIONS & REPORTING
+   Construction dashboards require live executive metrics (e.g. average completion
+   percentage across 50 floors, maximum tower risk level). PostgreSQL's relational
+   query planner executes multi-table JOINs, GROUP BY aggregations, and subqueries
+   in single-digit milliseconds.
+
+3. NIRMANIQ DATABASE CONVENTIONS
+--------------------------------------------------------------------------------
+Convention 1: UUID Primary Keys (Never Auto-Increment 1, 2, 3)
+- Auto-incrementing integer IDs expose systems to Insecure Direct Object References
+  (IDOR). An attacker can guess /projects/43 after seeing /projects/42.
+- UUIDv4 (e.g. c4a8d09f-8a4b-4b12-9c32-b7e123456789) is unguessable.
+- Distributed site engineers on offline mobile apps can generate new floor logs
+  with UUIDs without network connectivity and sync them later without collisions.
+
+Convention 2: snake_case in Database vs camelCase in TypeScript
+- PostgreSQL folds unquoted identifiers to lowercase (createdAt -> createdat).
+- NirmanIQ enforces snake_case for all tables and columns:
+  * TypeScript: createdAt, riskLevel, isArchived
+  * SQL: created_at, risk_level, is_archived
+  * TypeORM decorator: @Column({ name: 'created_at' })
+
+Convention 3: Never SELECT *
+- SELECT * fetches heavy text descriptions, binary blobs, and audit columns,
+  causing unnecessary memory allocation and database I/O.
+- Always use column projection: select: ['id', 'name', 'status', 'createdAt'].
+
+4. TYPEORM ENTITY RELATIONSHIPS
+--------------------------------------------------------------------------------
+A. One-to-Many (@OneToMany) and Many-to-One (@ManyToOne)
+   - ProjectEntity has @OneToMany(() => TowerEntity, (tower) => tower.project)
+   - TowerEntity has @ManyToOne(() => ProjectEntity, (project) => project.towers)
+     with @JoinColumn({ name: 'project_id' })
+   - FloorEntity has @ManyToOne(() => TowerEntity, (tower) => tower.floors)
+     with @JoinColumn({ name: 'tower_id' })
+
+B. Preventing the N+1 Query Problem
+   If you load 50 projects and query their towers in a loop, your app sends 1 + 50
+   = 51 queries.
+   Always use eager loading:
+   await projectRepo.findOne({ where: { id }, relations: ['towers', 'towers.floors'] })
+   Or use QueryBuilder with leftJoinAndSelect.
+
+5. MIGRATIONS WORKFLOW (WHY MANUAL MIGRATIONS > AUTO-SYNC)
+--------------------------------------------------------------------------------
+In production, synchronize: true is strictly FORBIDDEN because TypeORM may drop
+columns or tables when entities change.
+Manual migrations ensure:
+1. Version-controlled SQL scripts committed to Git.
+2. Predictable execution across staging and production environments.
+3. Full rollback capabilities via down() methods.
+
+Commands:
+- Generate: npm run typeorm migration:generate src/migrations/InitialSchema
+- Execute:  npm run typeorm migration:run
+- Revert:   npm run typeorm migration:revert
+
+6. QUERYBUILDER VS REPOSITORY
+--------------------------------------------------------------------------------
+Use Repository (repo.find(), repo.save()):
+- For standard CRUD operations and entity lifecycle events.
+
+Use QueryBuilder (repo.createQueryBuilder('p')):
+- When computing complex multi-table aggregations (COUNT, AVG, MAX).
+- Use getRawMany() when selecting aggregated calculations rather than full entities.
+
+Example:
+await projectRepo
+  .createQueryBuilder('p')
+  .leftJoin('p.towers', 't')
+  .leftJoin('t.floors', 'f')
+  .select('p.id', 'projectId')
+  .addSelect('COUNT(DISTINCT t.id)', 'towerCount')
+  .addSelect('ROUND(COALESCE(AVG(f.completion_percentage), 0), 2)', 'avgCompletion')
+  .addSelect('COALESCE(MAX(t.risk_level), 0)', 'maxRiskLevel')
+  .where('p.is_archived = :isArchived', { isArchived: false })
+  .groupBy('p.id')
+  .getRawMany();
+
+================================================================================
+END OF DAY 13 STUDY MATERIAL
+================================================================================

@@ -51,6 +51,13 @@
     "day12:build": "npm --prefix day12 run build",
     "day12:start": "npm --prefix day12 run start",
     "day12:test": "npm --prefix day12 run test",
+    "day13:ex1": "node day13/exercises/exercise-1-docker-postgres.js",
+    "day13:ex2": "node day13/exercises/exercise-2-typeorm-entities.js",
+    "day13:ex3": "node day13/exercises/exercise-3-migrations.js",
+    "day13:ex4": "node day13/exercises/exercise-4-query-builder.js",
+    "day13:build": "npm --prefix day13 run build",
+    "day13:start": "npm --prefix day13 run start",
+    "day13:test": "npm --prefix day13 run test",
     "typecheck": "node ./node_modules/typescript/lib/tsc.js -p tsconfig.json --noEmit",
     "lint": "node ./node_modules/typescript/lib/tsc.js -p tsconfig.json --noEmit",
     "build": "node ./node_modules/typescript/lib/tsc.js -p tsconfig.json --noEmit"

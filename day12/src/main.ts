@@ -13,6 +13,7 @@ export async function bootstrap() {
       transform: true
     })
   );
+  app.enableCors({ origin: '*' });
   app.useGlobalFilters(new AllExceptionsFilter());
   await app.listen(3012);
   console.log('Day 12 NestJS API running on http://localhost:3012');

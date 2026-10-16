@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Day 11 API Tester — NirmanIQ</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: #0f172a; color: #f8fafc; padding: 2rem; }
+    .container { max-width: 900px; margin: 0 auto; }
+    h1 { font-size: 1.5rem; margin-bottom: 0.5rem; color: #38bdf8; }
+    p.subtitle { color: #94a3b8; font-size: 0.9rem; margin-bottom: 1.5rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+    .card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 1rem; }
+    .card h3 { font-size: 0.95rem; margin-bottom: 0.5rem; color: #e2e8f0; display: flex; align-items: center; justify-content: space-between; }
+    .badge { font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+    .badge-get { background: #0284c7; color: white; }
+    .badge-post { background: #16a34a; color: white; }
+    .badge-put { background: #d97706; color: white; }
+    .badge-del { background: #dc2626; color: white; }
+    button { background: #2563eb; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: background 0.15s; width: 100%; margin-top: 0.5rem; }
+    button:hover { background: #1d4ed8; }
+    .response-box { background: #020617; border: 1px solid #334155; border-radius: 8px; padding: 1rem; }
+    .response-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+    .status-badge { font-size: 0.8rem; font-weight: bold; padding: 3px 8px; border-radius: 4px; }
+    .status-200 { background: #064e3b; color: #34d399; }
+    .status-error { background: #7f1d1d; color: #f87171; }
+    pre { color: #38bdf8; font-family: "Fira Code", Consolas, monospace; font-size: 0.85rem; overflow-x: auto; white-space: pre-wrap; word-break: break-all; max-height: 400px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>⚡ NirmanIQ — Day 11 API Live Tester</h1>
+    <p class="subtitle">Direct local connection to <code>http://localhost:3011</code> (Zero proxy, zero CORS issues)</p>
+
+    <div class="grid">
+      <div class="card">
+        <h3>1. List All Projects <span class="badge badge-get">GET</span></h3>
+        <p style="color:#94a3b8; font-size: 0.8rem;">/projects</p>
+        <button onclick="sendReq('GET', '/projects')">Send Request</button>
+      </div>
+
+      <div class="card">
+        <h3>2. Get Single Project <span class="badge badge-get">GET</span></h3>
+        <p style="color:#94a3b8; font-size: 0.8rem;">/projects/proj-1</p>
+        <button onclick="sendReq('GET', '/projects/proj-1')">Send Request</button>
+      </div>
+
+      <div class="card">
+        <h3>3. Create Project <span class="badge badge-post">POST</span></h3>
+        <p style="color:#94a3b8; font-size: 0.8rem;">/projects</p>
+        <button onclick="sendReq('POST', '/projects', { name: 'Apex Central Plaza', description: 'Commercial project', status: 'active', towerCount: 4 })">Send Request</button>
+      </div>
+
+      <div class="card">
+        <h3>4. Update Project <span class="badge badge-put">PUT</span></h3>
+        <p style="color:#94a3b8; font-size: 0.8rem;">/projects/proj-1</p>
+        <button onclick="sendReq('PUT', '/projects/proj-1', { status: 'completed', description: 'Handover finished' })">Send Request</button>
+      </div>
+
+      <div class="card">
+        <h3>5. Delete Project <span class="badge badge-del">DELETE</span></h3>
+        <p style="color:#94a3b8; font-size: 0.8rem;">/projects/proj-1</p>
+        <button onclick="sendReq('DELETE', '/projects/proj-1')">Send Request</button>
+      </div>
+
+      <div class="card">
+        <h3>6. Nested Towers <span class="badge badge-get">GET</span></h3>
+        <p style="color:#94a3b8; font-size: 0.8rem;">/projects/proj-2/towers</p>
+        <button onclick="sendReq('GET', '/projects/proj-2/towers')">Send Request</button>
+      </div>
+    </div>
+
+    <div class="response-box">
+      <div class="response-header">
+        <span style="font-weight: 600; font-size: 0.9rem;">Response Output:</span>
+        <span id="status" class="status-badge status-200">Ready</span>
+      </div>
+      <pre id="output">// Click any button above to test live endpoints</pre>
+    </div>
+  </div>
+
+  <script>
+    async function sendReq(method, path, body = null) {
+      const output = document.getElementById('output');
+      const status = document.getElementById('status');
+      output.textContent = 'Sending request to ' + path + '...';
+      
+      try {
+        const opts = { method, headers: { 'Content-Type': 'application/json' } };
+        if (body) opts.body = JSON.stringify(body);
+        
+        const res = await fetch(path, opts);
+        const data = await res.json();
+        
+        status.textContent = `${res.status} ${res.statusText}`;
+        status.className = 'status-badge ' + (res.ok ? 'status-200' : 'status-error');
+        output.textContent = JSON.stringify(data, null, 2);
+      } catch (err) {
+        status.textContent = 'Connection Error';
+        status.className = 'status-badge status-error';
+        output.textContent = 'Error connecting to ' + path + '\nMake sure the NestJS server is running (npm run day11:start).\nDetails: ' + err.message;
+      }
+    }
+  </script>
+</body>
+</html>
