@@ -25,13 +25,19 @@ Author: Penumuru Madhu Sudhan Reddy
    - Initial schema migration (`1728980000000-InitialDatabaseSchema.ts`) defines DDL, foreign keys, and indexes.
    - Secondary migration (`1728980001000-AddIsArchivedToProjects.ts`) verifies non-destructive schema evolution and down rollback.
 
-4. **Exercise 4: QueryBuilder Analytics & N+1 Prevention** (`src/projects/projects.service.ts` & `exercises/exercise-4-query-builder.js`)
+4. **Exercise 4: TypeORM Repositories replacing In-Memory Arrays (CRUD)** (`src/projects/projects.service.ts` & `exercises/exercise-4-services-crud.js`)
+   - Replaced in-memory array storage with TypeORM `Repository<ProjectEntity>`.
    - Never `SELECT *`: Enforced selective projection (`select: ['id', 'name', 'status', 'createdAt']`).
-   - Cross-table analytics via `QueryBuilder`:
-     - Computes `COUNT(DISTINCT t.id)` (towerCount).
-     - Computes `ROUND(AVG(f.completion_percentage), 2)` (avgCompletion).
-     - Computes `MAX(t.risk_level)` (maxRiskLevel).
-     - Uses `getRawMany()` for scalar aggregations in a single round-trip query.
+   - Eager loading relations: `relations: ['towers']`.
+   - Implements full CRUD: `create`, `findAll`, `findOne`, `update`, `delete`.
+
+5. **Exercise 5: Raw SQL vs TypeORM QueryBuilder** (`exercises/exercise-5-raw-sql-vs-querybuilder.js`)
+   - Pure raw SQL query with multi-table `LEFT JOIN` and `GROUP BY`.
+   - TypeORM `QueryBuilder` implementation computing:
+     - `COUNT(DISTINCT t.id)` (towerCount)
+     - `ROUND(AVG(f.completion_percentage), 2)` (avgCompletion)
+     - `MAX(t.risk_level)` (maxRiskLevel)
+   - Uses `getRawMany()` to execute the query in a single database round-trip.
 
 ---
 
@@ -50,10 +56,11 @@ npm test
 
 ### 2. Run Individual Exercises
 ```bash
-node day13/exercises/exercise-1-docker-postgres.js
-node day13/exercises/exercise-2-typeorm-entities.js
-node day13/exercises/exercise-3-migrations.js
-node day13/exercises/exercise-4-query-builder.js
+npm run day13:ex1
+npm run day13:ex2
+npm run day13:ex3
+npm run day13:ex4
+npm run day13:ex5
 ```
 
 ### 3. Spin Up Local PostgreSQL Container
