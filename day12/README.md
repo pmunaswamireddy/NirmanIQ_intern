@@ -67,3 +67,25 @@ npm run test
 | Unrecognized fields | `forbidNonWhitelisted: true` | 400 property should not exist |
 | Nested floors | `@ValidateNested()`, `@Type(() => FloorDto)` | 400 on invalid nested child fields |
 | Missing project | `ProjectNotFoundException` | 404 with standard 5-field schema |
+
+---
+
+## Testing Day 12 APIs with Hoppscotch
+
+* **API Base URL**: `http://localhost:3012`
+* **Focus**: Input validation rejection (`400 Bad Request`) & Mass assignment stripping
+
+### Key Hoppscotch Validation Tests:
+1. **Valid Project Creation**:
+   * `POST http://localhost:3012/projects`
+   * Body: `{"name": "SitePulse Tower Block", "status": "PLANNING", "towerCount": 4}`
+   * Returns: `201 Created`
+2. **Invalid Input (Name too short)**:
+   * `POST http://localhost:3012/projects`
+   * Body: `{"name": "X", "status": "PLANNING", "towerCount": 4}`
+   * Returns: `400 Bad Request` with `"name must be longer than or equal to 3 characters"`
+3. **Mass Assignment Attack (Unwhitelisted field)**:
+   * `POST http://localhost:3012/projects`
+   * Body: `{"name": "Valid Name", "status": "PLANNING", "towerCount": 4, "isAdmin": true}`
+   * Returns: `400 Bad Request` with `"property isAdmin should not exist"`
+

@@ -59,7 +59,24 @@ Verifies all 7 CRUD and nested tower endpoints, verifying status responses and 4
 
 ---
 
+## Testing Day 11 APIs with Hoppscotch
+
+* **API Base URL**: `http://localhost:3011`
+* **Data Store**: In-memory JavaScript Map / Array (Resets on server restart)
+
+### Quick Operations:
+1. **List Projects**: `GET http://localhost:3011/projects`
+2. **Create Project**: `POST http://localhost:3011/projects` with `{"name": "BuildTrack Commercial Center", "description": "Phase 1 development"}`
+3. **Get Project**: `GET http://localhost:3011/projects/<id>`
+4. **Update Project**: `PUT http://localhost:3011/projects/<id>` with `{"name": "BuildTrack Commercial Center (Revised)"}`
+5. **Add Tower**: `POST http://localhost:3011/projects/<id>/towers` with `{"name": "Tower 1", "riskLevel": 0}`
+6. **Get Towers**: `GET http://localhost:3011/projects/<id>/towers`
+7. **Delete Project**: `DELETE http://localhost:3011/projects/<id>`
+
+---
+
 ## Study Materials
 - Text summary: [`study_material.txt`](study_material.txt)
 - Formatted PDF handbook: [`study_material.pdf`](study_material.pdf)
 - Postman API collection: [`postman_collection.json`](postman_collection.json)
+

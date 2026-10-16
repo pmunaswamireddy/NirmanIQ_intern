@@ -79,21 +79,55 @@ npm run day9:test
 # Day 10: State Management & Data Fetching (TanStack React Query + Zustand)
 npm run day10:test
 
-# Day 11: NestJS Architecture & First API
+# Day 11: NestJS Architecture & First API (Port 3011)
 npm run day11:ex1
 npm run day11:ex2
 npm run day11:ex3
 npm run day11:test
 # Start API: npm run day11:start
 
-# Day 12: DTOs, Validation & Error Handling
+# Day 12: DTOs, Validation & Error Handling (Port 3012)
 npm run day12:ex1
 npm run day12:ex2
 npm run day12:ex3
 npm run day12:ex4
 npm run day12:test
 # Start API: npm run day12:start
+
+# Day 13: PostgreSQL & TypeORM (Port 3013, PostgreSQL Port 5432)
+npm run day13:ex1
+npm run day13:ex2
+npm run day13:ex3
+npm run day13:ex4
+npm run day13:ex5
+npm run day13:test
+# Start API: npm run day13:start
+
+# Day 14: Authentication, JWT & Guards (Port 3014, Shared PostgreSQL Port 5432)
+npm run day14:ex1
+npm run day14:ex2
+npm run day14:ex3
+npm run day14:ex4
+npm run day14:ex5
+npm run day14:test
+# Start API: npm run day14:start
 ```
+
+---
+
+## Interactive API Testing with Hoppscotch / Postman
+
+All backend API services built from Day 11 through Day 14 can be tested interactively via **[Hoppscotch](https://hoppscotch.io)** or **Postman**.
+
+| Day | Module / Topic | Base URL | Database / Store | Key Hoppscotch Workflows |
+|---|---|---|---|---|
+| **Day 11** | First NestJS API | `http://localhost:3011` | In-memory Store | Basic CRUD (`GET /projects`, `POST /projects`), nested towers (`GET /projects/:id/towers`). |
+| **Day 12** | DTOs & Validation | `http://localhost:3012` | In-memory Store | Payload validation checks (`400 Bad Request` on short names/invalid enums), mass assignment rejection. |
+| **Day 13** | TypeORM & PostgreSQL | `http://localhost:3013` | Docker PostgreSQL (`nirmaniq_training`:5432) | Persistent database CRUD across `projects`, `towers`, and `floors`. Cascading deletes and aggregations. |
+| **Day 14** | Auth, RBAC & Guards | `http://localhost:3014` | Shared PostgreSQL (`nirmaniq_training`:5432) | `POST /auth/register` &rarr; `POST /auth/login` (get tokens) &rarr; set Bearer token in Auth tab &rarr; call guarded endpoints (`/projects`, `/auth/me`). |
+
+> **Database Sharing Note:** Day 13 and Day 14 connect to the **same PostgreSQL database** (`nirmaniq_training` on port 5432). Day 13 manages construction project hierarchy, and Day 14 introduces the `users` table with hashed passwords and refresh tokens without breaking existing project data.
+
 
 ---
 

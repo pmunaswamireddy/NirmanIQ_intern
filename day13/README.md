@@ -76,8 +76,90 @@ npm run migration:run
 npm run migration:revert
 ```
 
+### 5. Start Live NestJS API Server (Port 3013)
+```bash
+npm run day13:start
+```
+
+---
+
+## Testing Day 13 APIs with Hoppscotch
+
+You can test all CRUD operations against PostgreSQL using **Hoppscotch** (or Postman).
+
+* **API Base URL**: `http://localhost:3013`
+* **PostgreSQL Database**: `nirmaniq_training` on port `5432` (Container `nirmaniq_postgres`)
+  * *All operations interact directly with the tables `projects`, `towers`, and `floors`.*
+
+### Hoppscotch Operations & Workflow
+
+#### 1. Create a Project (POST /projects)
+* **Method**: `POST`
+* **URL**: `http://localhost:3013/projects`
+* **Headers**: `Content-Type: application/json`
+* **Body**:
+```json
+{
+  "name": "Apex Business Bay",
+  "description": "Commercial multi-tower complex",
+  "status": "PLANNING"
+}
+```
+* **Status**: `201 Created`
+* **Action**: Copy the returned UUID `id` for subsequent requests.
+
+#### 2. Get All Projects (GET /projects)
+* **Method**: `GET`
+* **URL**: `http://localhost:3013/projects`
+* **Status**: `200 OK`
+* **Response**: Returns list of all active projects in PostgreSQL with selective projection (`id`, `name`, `status`, `createdAt`).
+
+#### 3. Get Project Details with Relations (GET /projects/:id)
+* **Method**: `GET`
+* **URL**: `http://localhost:3013/projects/<project_id>`
+* **Status**: `200 OK`
+* **Response**: Returns project details along with eager-loaded relational `towers`.
+
+#### 4. Update Project Status (PUT /projects/:id)
+* **Method**: `PUT`
+* **URL**: `http://localhost:3013/projects/<project_id>`
+* **Headers**: `Content-Type: application/json`
+* **Body**:
+```json
+{
+  "status": "ACTIVE"
+}
+```
+* **Status**: `200 OK`
+
+#### 5. Add Towers with Floors (POST /projects/:id/towers)
+* **Method**: `POST`
+* **URL**: `http://localhost:3013/projects/<project_id>/towers`
+* **Headers**: `Content-Type: application/json`
+* **Body**:
+```json
+{
+  "name": "Tower A",
+  "riskLevel": 1,
+  "floors": [
+    { "floorNumber": 1, "completionPercentage": 100.0 },
+    { "floorNumber": 2, "completionPercentage": 50.0 },
+    { "floorNumber": 3, "completionPercentage": 0.0 }
+  ]
+}
+```
+* **Status**: `201 Created`
+* **Response**: Saves tower and cascading floor entities in PostgreSQL linked by foreign key `project_id`.
+
+#### 6. Delete a Project (DELETE /projects/:id)
+* **Method**: `DELETE`
+* **URL**: `http://localhost:3013/projects/<project_id>`
+* **Status**: `200 OK`
+* **Cascade Behavior**: Cascades deletion to associated towers and floors automatically.
+
 ---
 
 ## Study Materials
 - Text summary: [`study_material.txt`](study_material.txt)
 - Formatted PDF handbook: [`study_material.pdf`](study_material.pdf)
+
