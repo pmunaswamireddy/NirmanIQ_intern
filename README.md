@@ -413,8 +413,8 @@ npm run day12:test
   **Run NestJS Project:** `cd day13 && npm run start` (Port 3013) | Automated tests: `npm run day13:test`
   </details>
 
-- [ ] **Day 14 — Authentication & Guards**
-  <details>
+- [x] **Day 14 — Authentication & Guards**
+  <details open>
   <summary>View Syllabus</summary>
 
   **Concepts (2 hrs):**
@@ -426,12 +426,14 @@ npm run day12:test
 
   **Practical (5 hrs):**
   - Exercise 1: Create an `auth` module with `register` and `login` endpoints. Hash passwords with bcrypt. Issue JWT tokens.
-  - Exercise 2: Create `JwtAuthGuard` — protect all project endpoints. Unauthenticated requests return 451.
-  - Exercise 3: Create `RolesGuard` — `POST /projects` only for PM+, `DELETE /projects/:id` only for SA. Other roles get 453.
+  - Exercise 2: Create `JwtAuthGuard` — protect all project endpoints. Unauthenticated requests return 401.
+  - Exercise 3: Create `RolesGuard` — `POST /projects` only for PM+, `DELETE /projects/:id` only for SA. Other roles get 403.
   - Exercise 4: Implement refresh token rotation — `POST /auth/refresh` issues new access + refresh token, invalidates old refresh token.
   - Exercise 5: Create `@CurrentUser()` decorator to extract user from JWT. Use it in controllers.
 
-  **Deliverable:** PR with auth system. Test all auth flows with Postman (register, login, access protected routes, refresh, role-denied).
+  **Deliverable:** PR with auth system. Test all auth flows with Postman (register, login, access protected routes, refresh, role-denied).  
+  **Completed Folder:** [`day14/`](day14/)  
+  **Run NestJS Project:** `cd day14 && npm run start` (Port 3014) | Automated tests: `npm run day14:test`
   </details>
 
 - [ ] **Day 15 — Checkpoint Assessment #1 ("Tower Progress Tracker")**

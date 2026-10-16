@@ -1,0 +1,185 @@
+================================================================================
+NIRMANIQ INTERNSHIP PROGRAM: FULL-STACK WEB DEVELOPMENT
+DAY 14: AUTHENTICATION, AUTHORIZATION, RBAC & NESTJS GUARDS
+Author: Penumuru Madhu Sudhan Reddy <pmrpmunaswamireddy@gmail.com>
+================================================================================
+
+1. EXECUTIVE SUMMARY & MOTIVATION
+--------------------------------------------------------------------------------
+On Day 13, database endpoints were connected to PostgreSQL with TypeORM. However,
+endpoints like POST /projects and DELETE /projects/:id were publicly exposed to
+anyone on the web.
+
+Day 14 implements enterprise-grade identity management, access control, and
+stateless session management:
+1. Password Security: Salted bcrypt hashing (cost factor 10).
+2. Dual-Token Architecture: Short-lived Access Tokens (1 hour) + Long-lived Refresh
+   Tokens (30 days).
+3. Request Interception: NestJS ExecutionContext and CanActivate Guards.
+4. Role-Based Access Control (RBAC): Domain role hierarchy (SE, PE, PM, PD, CXO, TA, SA).
+5. Custom Metadata & Decorators: @Roles() and @CurrentUser() parameter decorators.
+6. Refresh Token Rotation: Cryptographic token invalidation and theft prevention.
+
+
+2. THE DUAL-TOKEN AUTHENTICATION PATTERN
+--------------------------------------------------------------------------------
+A. Why Never Issue a Single 30-Day JWT?
+If a single 30-day token is compromised (via XSS, network eavesdropping, or client
+leakage), an attacker retains unrestricted access for an entire month with no
+mechanism for revocation short of rotating global server signing keys.
+
+B. The Production Architecture:
+- Access Token (Short-lived, 1 hour):
+  * Sent in the `Authorization: Bearer <token>` HTTP header with every request.
+  * Verified statelessly by the API server using public/private or symmetric HMAC
+    cryptography without querying PostgreSQL.
+  * Ensures zero database bottlenecks for high-throughput endpoints.
+
+- Refresh Token (Long-lived, 30 days):
+  * Stored securely on client (httpOnly, Secure, SameSite cookie).
+  * Stored as a salted bcrypt or SHA-256 hash in PostgreSQL (`users.refresh_token_hash`).
+  * Presented only to `POST /auth/refresh` when the access token expires.
+
+C. Refresh Token Rotation & Theft Detection:
+1. User logs in -> Receives AT1 + RT1. Server stores hash(RT1).
+2. AT1 expires after 1 hour. Client sends RT1 to /auth/refresh.
+3. Server verifies hash(RT1) == users.refresh_token_hash.
+4. Server generates AT2 + RT2, computes hash(RT2), and overwrites users.refresh_token_hash.
+5. If an attacker attempts to replay RT1 later:
+   * hash(RT1) != users.refresh_token_hash (which now holds RT2).
+   * Server detects token theft or reuse anomaly.
+   * Server immediately sets users.refresh_token_hash = NULL, revoking ALL active
+     sessions for that user account across all devices.
+
+
+3. NIRMANIQ USER ROLES & HIERARCHY
+--------------------------------------------------------------------------------
+Construction ERP platforms require fine-grained role segregation based on real site
+responsibilities:
+
+Role  Title               Operational Permissions
+----  ------------------  ------------------------------------------------------
+SE    Site Engineer       Ground operations: View assigned projects, upload daily
+                          progress logs, inspect rooms. Cannot create/delete projects.
+PE    Planning Engineer   1st-tier review: Validates AI progress estimates, updates
+                          schedule baselines.
+PM    Planning Manager    2nd-tier authority: Can CREATE new projects, approve milestones,
+                          allocate tower resources.
+PD    Project Director    Multi-project oversight: Cross-project analytics, budget approvals.
+CXO   C-Suite Executive   Portfolio reporting: High-level risk dashboards and cash flows.
+TA    Tenant Admin        Organization setup: Inviting users, configuring enterprise rules.
+SA    Super Admin         Full system control: Infrastructure management, permanent DELETES.
+
+Hierarchy:
+SA > TA > PD > CXO > PM > PE > SE
+
+
+4. NESTJS GUARDS: THE CANACTIVATE INTERFACE
+--------------------------------------------------------------------------------
+Guards determine whether a given request will be handled by the route handler.
+
+Execution Lifecycle:
+Client Request
+      │
+      ▼
+Middleware (Logger, CORS, Rate Limit)
+      │
+      ▼
+Guards (JwtAuthGuard -> RolesGuard)
+      │
+      ▼ (If canActivate() returns true)
+Interceptors (Pre-controller)
+      │
+      ▼
+Pipes (ValidationPipe, DTO Transforms)
+      │
+      ▼
+Controller Action (e.g. createProject)
+      │
+      ▼
+Interceptors (Post-controller / Response transform)
+      │
+      ▼
+Exception Filters (If error thrown)
+      │
+      ▼
+Client Response
+
+A. JwtAuthGuard:
+- Extends NestJS Passport AuthGuard('jwt').
+- Extracts Authorization header Bearer token.
+- Validates signature and exp timestamp.
+- On error: Immediately throws HTTP 401 Unauthorized.
+- On success: Attaches payload to `request.user`.
+
+B. RolesGuard:
+- Implements CanActivate.
+- Uses Reflector to read @Roles() metadata from the handler and controller class.
+- Verifies if `requiredRoles.includes(request.user.role)`.
+- On mismatch: Throws HTTP 403 Forbidden.
+
+
+5. CUSTOM PARAMETER DECORATOR: @CurrentUser()
+--------------------------------------------------------------------------------
+Instead of writing repetitive code inside controller methods:
+```typescript
+@Get('me')
+getProfile(@Req() req) {
+  const userId = req.user.userId;
+  // ...
+}
+```
+
+NirmanIQ uses a clean parameter decorator:
+```typescript
+export const CurrentUser = createParamDecorator(
+  (data: keyof AuthenticatedUser | undefined, ctx: ExecutionContext) => {
+    const request = ctx.switchToHttp().getRequest();
+    const user: AuthenticatedUser = request.user;
+    return data ? user?.[data] : user;
+  },
+);
+```
+
+Usage in Controller:
+```typescript
+@Get('projects')
+findAll(@CurrentUser() user: AuthenticatedUser) { ... }
+
+@Post('projects')
+create(@Body() dto: CreateProjectDto, @CurrentUser('userId') userId: string) { ... }
+```
+
+
+6. PRACTICAL EXERCISES SUMMARY
+--------------------------------------------------------------------------------
+- Exercise 1 (`npm run day14:ex1`): User registration, bcrypt password hashing with
+  salt rounds (cost factor 10), and dual JWT issuance.
+- Exercise 2 (`npm run day14:ex2`): JwtAuthGuard token extraction, signature verification,
+  and 401 Unauthorized rejection.
+- Exercise 3 (`npm run day14:ex3`): RolesGuard permission evaluation, blocking SE from
+  POST /projects (403), allowing PM (201), blocking PM from DELETE (403), and allowing SA (200).
+- Exercise 4 (`npm run day14:ex4`): Refresh token rotation, issuing new token pairs, and
+  detecting token theft replay.
+- Exercise 5 (`npm run day14:ex5`): @CurrentUser() custom decorator extracting full user
+  context and specific properties.
+
+
+7. VERIFICATION COMMANDS
+--------------------------------------------------------------------------------
+Run all integration tests:
+  npm run day14:test
+
+Run individual exercises:
+  npm run day14:ex1
+  npm run day14:ex2
+  npm run day14:ex3
+  npm run day14:ex4
+  npm run day14:ex5
+
+Compile TypeScript:
+  npm run day14:build
+
+Start live NestJS server on port 3014:
+  npm run day14:start
+================================================================================
