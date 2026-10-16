@@ -1,0 +1,96 @@
+================================================================================
+NIRMANIQ FULL-STACK INTERNSHIP - STUDY MATERIAL
+DAY 15: CHECKPOINT ASSESSMENT #1 - MINI FULL-STACK APP (TOWER PROGRESS TRACKER)
+Author: Penumuru Madhu Sudhan Reddy
+================================================================================
+
+1. EXECUTIVE OVERVIEW & ARCHITECTURAL PHILOSOPHY
+--------------------------------------------------------------------------------
+Day 15 serves as the milestone Checkpoint Assessment #1, consolidating all 
+foundational competencies acquired across Phase 1 (Days 1–15). 
+
+The goal is to build the "Tower Progress Tracker" — a production-grade full-stack 
+application designed to solve real construction site monitoring challenges:
+- Real-time floor-by-floor progress updates from job sites
+- Algorithmic tower risk recalibration based on average completion metrics
+- Role-based security enforcing strict enterprise separation of duties:
+  * Planning Managers (PM) configure project scopes, timelines, and towers.
+  * Site Engineers (SE) work in the field, inspecting floors and submitting progress.
+
+Architecture Stack:
+- Frontend: Next.js 14 (App Router), Tailwind CSS v4, Zustand, TanStack React Query v5
+- Backend: NestJS 11, TypeORM 0.3, PostgreSQL 16, Passport JWT, bcrypt
+- Database: Relational schema on port 5432 with cascade deletes and foreign keys.
+
+
+2. ROLE-BASED ACCESS CONTROL (RBAC) & PERMISSIONS MATRIX
+--------------------------------------------------------------------------------
+In NirmanIQ's construction domain, permissions are strictly bound to physical site 
+responsibilities. Site Engineers cannot alter project configurations or delete records.
+
++--------------------------+--------+------------------+------------------+
+| API Route / Resource     | Method | Site Engineer(SE)| Project Manager  |
++--------------------------+--------+------------------+------------------+
+| POST /auth/login         | POST   | Allowed (Token)  | Allowed (Token)  |
+| GET /projects            | GET    | Allowed (Read)   | Allowed (Read)   |
+| POST /projects           | POST   | 403 FORBIDDEN    | Allowed (Create) |
+| PUT /projects/:id        | PUT    | 403 FORBIDDEN    | Allowed (Update) |
+| DELETE /projects/:id     | DELETE | 403 FORBIDDEN    | 403 (SA Only)    |
+| POST /projects/:id/towers| POST   | 403 FORBIDDEN    | Allowed (Create) |
+| GET /towers/:id          | GET    | Allowed (Read)   | Allowed (Read)   |
+| PATCH /floors/:id/progress| PATCH | Allowed (UPDATE) | Allowed (UPDATE) |
++--------------------------+--------+------------------+------------------+
+
+
+3. THE TOWER & FLOOR CONSTRUCTION PROGRESS MODEL
+--------------------------------------------------------------------------------
+A construction project is modeled as a hierarchy:
+Project (1) ---> Many Towers (N) ---> Many Floors (M)
+
+Automatic Status State Machine:
+When an SE updates a floor's completionPercentage (0.0 to 100.0):
+- percentage == 0.0   --> status = 'NOT_STARTED'
+- 0.0 < percentage < 100.0 --> status = 'IN_PROGRESS'
+- percentage == 100.0 --> status = 'COMPLETED'
+
+Tower Risk Recalibration Algorithm:
+Whenever any floor within a tower is updated, the backend automatically computes
+the tower's average completion rate across all its floors:
+  averageCompletion = SUM(floors.completionPercentage) / COUNT(floors)
+
+- averageCompletion >= 60% --> Risk Level 0: ON TRACK (#10b981)
+- 25% <= averageCompletion < 60% --> Risk Level 1: AT RISK (#f59e0b)
+- averageCompletion < 25% --> Risk Level 2: HIGH RISK (#ef4444)
+
+
+4. FRONTEND ARCHITECTURE (NEXT.JS 14 APP ROUTER)
+--------------------------------------------------------------------------------
+A. State Management Bifurcation:
+- Server State (React Query): Cache identity via queryKeys ['projects', status, search],
+  automatic background refetching, and optimistic invalidation via queryClient.invalidateQueries().
+- Client UI State (Zustand): useAuthStore persists JWT access token and active user role
+  in localStorage across page refreshes.
+
+B. Visual Accessibility & NirmanIQ Risk Palette:
+- High contrast dark surfaces (#090d16 / #111827).
+- Visual feedback on interactive elements with micro-animations.
+- Distinct color-coded risk badges preventing visual ambiguity on site.
+
+
+5. FULL-STACK VERIFICATION & TESTING COMMANDS
+--------------------------------------------------------------------------------
+1. Start PostgreSQL (Docker):
+   cd day13 && docker compose up -d
+
+2. Start NestJS Backend API (Port 3015):
+   npm run day15:backend
+
+3. Start Next.js Frontend (Port 3050):
+   npm run day15:frontend
+
+4. Run Full-Stack Automated Test Suite:
+   npm run day15:test
+
+================================================================================
+END OF STUDY MATERIAL - DAY 15
+================================================================================

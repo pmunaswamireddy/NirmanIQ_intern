@@ -67,6 +67,10 @@
     "day14:build": "npm --prefix day14 run build",
     "day14:start": "npm --prefix day14 run start",
     "day14:test": "npm --prefix day14 run test",
+    "day15:build": "npm --prefix day15 run build && npm --prefix day15/frontend run build",
+    "day15:backend": "npm --prefix day15 run start",
+    "day15:frontend": "npm --prefix day15/frontend run dev",
+    "day15:test": "npm --prefix day15 run test",
     "typecheck": "node ./node_modules/typescript/lib/tsc.js -p tsconfig.json --noEmit",
     "lint": "node ./node_modules/typescript/lib/tsc.js -p tsconfig.json --noEmit",
     "build": "node ./node_modules/typescript/lib/tsc.js -p tsconfig.json --noEmit"

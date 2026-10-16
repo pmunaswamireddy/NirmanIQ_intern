@@ -111,13 +111,18 @@ npm run day14:ex4
 npm run day14:ex5
 npm run day14:test
 # Start API: npm run day14:start
+
+# Day 15: Checkpoint Assessment #1 — Tower Progress Tracker (Full-Stack)
+# Backend (Port 3015): npm run day15:backend
+# Frontend (Port 3050): npm run day15:frontend
+# Automated Integration Test: npm run day15:test
 ```
 
 ---
 
 ## Interactive API Testing with Hoppscotch / Postman
 
-All backend API services built from Day 11 through Day 14 can be tested interactively via **[Hoppscotch](https://hoppscotch.io)** or **Postman**.
+All backend API services built from Day 11 through Day 15 can be tested interactively via **[Hoppscotch](https://hoppscotch.io)** or **Postman**.
 
 | Day | Module / Topic | Base URL | Database / Store | Key Hoppscotch Workflows |
 |---|---|---|---|---|
@@ -125,8 +130,9 @@ All backend API services built from Day 11 through Day 14 can be tested interact
 | **Day 12** | DTOs & Validation | `http://localhost:3012` | In-memory Store | Payload validation checks (`400 Bad Request` on short names/invalid enums), mass assignment rejection. |
 | **Day 13** | TypeORM & PostgreSQL | `http://localhost:3013` | Docker PostgreSQL (`nirmaniq_training`:5432) | Persistent database CRUD across `projects`, `towers`, and `floors`. Cascading deletes and aggregations. |
 | **Day 14** | Auth, RBAC & Guards | `http://localhost:3014` | Shared PostgreSQL (`nirmaniq_training`:5432) | `POST /auth/register` &rarr; `POST /auth/login` (get tokens) &rarr; set Bearer token in Auth tab &rarr; call guarded endpoints (`/projects`, `/auth/me`). |
+| **Day 15** | Checkpoint Assessment #1 (Full-Stack Tower Tracker) | Backend: `http://localhost:3015`<br>Frontend: `http://localhost:3050` | Shared PostgreSQL (`nirmaniq_training`:5432) | Complete full-stack flow: Login with SE/PM (`POST /auth/login`) &rarr; project list &rarr; tower hierarchy &rarr; update floor progress (`PATCH /floors/:id/progress`) &rarr; automatic tower risk level calculation. |
 
-> **Database Sharing Note:** Day 13 and Day 14 connect to the **same PostgreSQL database** (`nirmaniq_training` on port 5432). Day 13 manages construction project hierarchy, and Day 14 introduces the `users` table with hashed passwords and refresh tokens without breaking existing project data.
+> **Database Sharing Note:** Day 13, Day 14, and Day 15 connect to the **same PostgreSQL database** (`nirmaniq_training` on port 5432). Day 13 manages construction project hierarchy, Day 14 introduces the `users` table with hashed passwords and refresh tokens, and Day 15 connects the Next.js full-stack frontend with complete role-based workflows and real-time risk calculations.
 
 
 ---
@@ -470,17 +476,33 @@ All backend API services built from Day 11 through Day 14 can be tested interact
   **Run NestJS Project:** `cd day14 && npm run start` (Port 3014) | Automated tests: `npm run day14:test`
   </details>
 
-- [ ] **Day 15 — Checkpoint Assessment #1 ("Tower Progress Tracker")**
-  <details>
+- [x] **Day 15 — Checkpoint Assessment #1 ("Tower Progress Tracker")**
+  <details open>
   <summary>View Assessment Details</summary>
 
   **Build a Mini Full-Stack App (8 hrs) — "Tower Progress Tracker"**
 
-  **Backend (NestJS):** Auth (JWT), CRUD for Projects + Towers (PostgreSQL + TypeORM), DTOs with validation, role-based access (PM can create/edit, SE can only view and update progress).
+  **Backend (NestJS API, Port 3015):**
+  - JWT Authentication & dual-token architecture with bcrypt password hashing.
+  - PostgreSQL + TypeORM relational models (`User`, `Project`, `Tower`, `Floor`).
+  - Strict input validation via `class-validator` DTOs and `ValidationPipe({ whitelist: true })`.
+  - Role-Based Access Control (`RolesGuard`): `PROJECT_MANAGER` has full CRUD on projects and towers; `SITE_ENGINEER` is restricted to read-only on project setup but has authorized execution on `PATCH /floors/:id/progress`.
+  - Automatic tower risk recalibration algorithm: updates tower average progress and risk level (0 On Track, 1 At Risk, 2 High Risk, 3 Critical) in real time.
 
-  **Frontend (Next.js):** Login page, project list with search/filter, project detail showing towers in a grid, tower detail with floor-by-floor progress, "Update Progress" form (SE role), responsive, uses shadcn/ui.
+  **Frontend (Next.js 14 App Router, Port 3050):**
+  - Modern dark-themed dashboard with glassmorphism and NirmanIQ risk color tokens.
+  - Login page with 1-click Quick Login buttons for Project Manager (`pm@nirmaniq.com`) and Site Engineer (`se@nirmaniq.com`).
+  - Searchable and filterable Project List with status pills and PM "New Project" modal.
+  - Project Detail page featuring `<TowerGrid>`, color-coded risk badges, and PM "Add Tower" modal.
+  - Tower Detail page with floor-by-floor breakdown and interactive "Update Progress" slider modal for Site Engineers.
+  - Persistent authentication store via Zustand and type-safe server queries with TanStack React Query.
 
-  **Pass threshold:** 60/100. Below 50 = remediation week before proceeding.
+  **Deliverable:** Full-stack production-grade application passing all automated integration checkpoints.  
+  **Completed Folder:** [`day15/`](day15/)  
+  **Run Backend (NestJS):** `npm run day15:backend` (Port 3015)  
+  **Run Frontend (Next.js):** `npm run day15:frontend` (Port 3050)  
+  **Run Automated Integration Tests:** `npm run day15:test`  
+  **Study Material & Architecture Guide:** [`day15/study_material.pdf`](day15/study_material.pdf) | [`day15/study_material.txt`](day15/study_material.txt)
   </details>
 
 ---
