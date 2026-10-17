@@ -12,10 +12,10 @@ export class UserEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'varchar', length: 100, unique: true })
+  @Column({ type: 'varchar', length: 150, unique: true })
   email: string;
 
-  @Column({ type: 'varchar', length: 255, name: 'password_hash' })
+  @Column({ type: 'varchar', name: 'password_hash' })
   passwordHash: string;
 
   @Column({
@@ -25,7 +25,7 @@ export class UserEntity {
   })
   role: Role;
 
-  @Column({ type: 'varchar', length: 255, name: 'refresh_token_hash', nullable: true })
+  @Column({ type: 'varchar', name: 'refresh_token_hash', nullable: true })
   refreshTokenHash: string | null;
 
   @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
