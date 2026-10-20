@@ -196,7 +196,7 @@ export default function ProjectsPage() {
                     <span>{p.towerCount} {p.towerCount === 1 ? 'Tower' : 'Towers'}</span>
                   </span>
                   <span className="font-semibold text-slate-200">
-                    {p.avgCompletion}% Complete
+                    {Math.round(p.progress ?? p.avgCompletion ?? 0)}% Complete
                   </span>
                 </div>
 
@@ -204,7 +204,7 @@ export default function ProjectsPage() {
                 <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden mb-3">
                   <div
                     className="h-full bg-gradient-to-r from-sky-500 to-emerald-500 rounded-full transition-all duration-500"
-                    style={{ width: `${Math.max(5, p.avgCompletion)}%` }}
+                    style={{ width: `${Math.max(5, Math.round(p.progress ?? p.avgCompletion ?? 0))}%` }}
                   />
                 </div>
 

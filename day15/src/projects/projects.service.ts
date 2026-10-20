@@ -60,6 +60,7 @@ export class ProjectsService {
         location: p.location || 'Hyderabad',
         targetCompletion: p.targetCompletion,
         progress,
+        avgCompletion: progress,
         description: p.description,
         status: p.status,
         towerCount: towers.length,
