@@ -3,6 +3,7 @@ import { UserEntity } from './users/entities/user.entity';
 import { ProjectEntity } from './projects/entities/project.entity';
 import { TowerEntity } from './towers/entities/tower.entity';
 import { FloorEntity } from './towers/entities/floor.entity';
+import { ProgressUpdateEntity } from './progress/entities/progress-update.entity';
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
@@ -12,5 +13,11 @@ export const AppDataSource = new DataSource({
   password: process.env.DB_PASSWORD || 'secretpassword',
   database: process.env.DB_NAME || 'nirmaniq_training',
   synchronize: true,
-  entities: [UserEntity, ProjectEntity, TowerEntity, FloorEntity],
+  entities: [
+    UserEntity,
+    ProjectEntity,
+    TowerEntity,
+    FloorEntity,
+    ProgressUpdateEntity,
+  ],
 });

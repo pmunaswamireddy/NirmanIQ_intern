@@ -10,6 +10,15 @@ export class CreateProjectDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(150)
+  location?: string;
+
+  @IsOptional()
+  @IsString()
+  targetCompletion?: string;
+
+  @IsOptional()
+  @IsString()
   @MaxLength(500)
   description?: string;
 

@@ -11,7 +11,7 @@ export default function RootPage() {
   useEffect(() => {
     initialize();
     if (isAuthenticated) {
-      router.replace('/projects');
+      router.replace('/dashboard');
     } else {
       router.replace('/login');
     }

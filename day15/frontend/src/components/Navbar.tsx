@@ -2,12 +2,13 @@
 
 import React, { useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '../store/useAuthStore';
-import { Building2, LogOut, Shield, HardHat } from 'lucide-react';
+import { Building2, LogOut, Shield, HardHat, LayoutDashboard, FolderGit2 } from 'lucide-react';
 
 export function Navbar() {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, isAuthenticated, logout, initialize } = useAuthStore();
 
   useEffect(() => {
@@ -19,30 +20,61 @@ export function Navbar() {
     router.push('/login');
   };
 
+  const isPM = user?.role === 'PM' || user?.role === 'PROJECT_MANAGER' || user?.role === 'SUPER_ADMIN';
+
   return (
     <header className="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-        <Link href="/projects" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400 group-hover:scale-105 transition-transform">
-            <Building2 className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-slate-100 tracking-tight text-lg">NirmanIQ</span>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20 font-medium">
-                Checkpoint #1
-              </span>
+        <div className="flex items-center gap-8">
+          <Link href="/dashboard" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400 group-hover:scale-105 transition-transform">
+              <Building2 className="w-5 h-5" />
             </div>
-            <p className="text-xs text-slate-400">Tower Progress Tracker</p>
-          </div>
-        </Link>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-slate-100 tracking-tight text-lg">NirmanIQ</span>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20 font-medium">
+                  Checkpoint #1
+                </span>
+              </div>
+              <p className="text-xs text-slate-400">Tower Progress Tracker</p>
+            </div>
+          </Link>
+
+          {isAuthenticated && (
+            <nav className="hidden md:flex items-center gap-2">
+              <Link
+                href="/dashboard"
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+                  pathname === '/dashboard'
+                    ? 'bg-slate-800 text-sky-400 font-semibold'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                }`}
+              >
+                <LayoutDashboard className="w-3.5 h-3.5" />
+                Dashboard
+              </Link>
+              <Link
+                href="/projects"
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+                  pathname.startsWith('/projects')
+                    ? 'bg-slate-800 text-sky-400 font-semibold'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                }`}
+              >
+                <FolderGit2 className="w-3.5 h-3.5" />
+                Projects
+              </Link>
+            </nav>
+          )}
+        </div>
 
         <div className="flex items-center gap-4">
           {isAuthenticated && user ? (
             <>
               <div className="flex items-center gap-3 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800">
                 <div className="w-7 h-7 rounded-full bg-slate-800 flex items-center justify-center text-slate-300">
-                  {user.role === 'PROJECT_MANAGER' ? (
+                  {isPM ? (
                     <Shield className="w-4 h-4 text-sky-400" />
                   ) : (
                     <HardHat className="w-4 h-4 text-emerald-400" />
@@ -52,19 +84,19 @@ export function Navbar() {
                   <p className="text-xs font-medium text-slate-200">{user.email}</p>
                   <span
                     className={`inline-block text-[10px] font-semibold uppercase px-1.5 py-0.2 rounded ${
-                      user.role === 'PROJECT_MANAGER'
+                      isPM
                         ? 'text-sky-400 bg-sky-950/80'
                         : 'text-emerald-400 bg-emerald-950/80'
                     }`}
                   >
-                    {user.role.replace('_', ' ')}
+                    {isPM ? 'Project Manager' : 'Site Engineer'}
                   </span>
                 </div>
               </div>
 
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-900 border border-transparent hover:border-slate-800 transition"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-900 border border-transparent hover:border-slate-800 transition cursor-pointer"
                 title="Log out"
               >
                 <LogOut className="w-4 h-4" />

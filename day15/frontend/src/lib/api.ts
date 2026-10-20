@@ -96,3 +96,22 @@ export async function apiUpdateFloorProgress(floorId: string, completionPercenta
   });
   return handleResponse(res);
 }
+
+export async function apiUpdateProjectProgress(projectId: string, progress: number, note?: string) {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/progress`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader(),
+    },
+    body: JSON.stringify({ progress, note }),
+  });
+  return handleResponse(res);
+}
+
+export async function apiGetProgressUpdates(projectId: string) {
+  const res = await fetch(`${API_BASE}/progress/${projectId}`, {
+    headers: { ...getAuthHeader() },
+  });
+  return handleResponse(res);
+}

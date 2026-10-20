@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProjectEntity } from './entities/project.entity';
+import { ProgressUpdateEntity } from '../progress/entities/progress-update.entity';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { ProjectStatus } from './dto/project-status.enum';
@@ -11,6 +12,8 @@ export class ProjectsService {
   constructor(
     @InjectRepository(ProjectEntity)
     private readonly projectRepository: Repository<ProjectEntity>,
+    @InjectRepository(ProgressUpdateEntity)
+    private readonly updateRepository: Repository<ProgressUpdateEntity>,
   ) {}
 
   async findAll(status?: ProjectStatus, search?: string) {
@@ -18,6 +21,7 @@ export class ProjectsService {
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.towers', 'tower')
       .leftJoinAndSelect('tower.floors', 'floor')
+      .leftJoinAndSelect('project.updates', 'update')
       .where('project.isArchived = :isArchived', { isArchived: false })
       .orderBy('project.createdAt', 'DESC');
 
@@ -37,22 +41,28 @@ export class ProjectsService {
       const towers = p.towers || [];
       const allFloors = towers.flatMap((t) => t.floors || []);
       const totalFloors = allFloors.length;
-      const avgCompletion =
+      const floorAvg =
         totalFloors > 0
           ? Math.round(
-              (allFloors.reduce((acc, f) => acc + Number(f.completionPercentage), 0) /
+              (allFloors.reduce((acc, f) => acc + Number(f.completionPercentage || 0), 0) /
                 totalFloors) *
                 100,
             ) / 100
           : 0;
 
+      const progress = p.progress !== undefined && p.progress !== null && p.progress > 0
+        ? p.progress
+        : floorAvg;
+
       return {
         id: p.id,
         name: p.name,
+        location: p.location || 'Hyderabad',
+        targetCompletion: p.targetCompletion,
+        progress,
         description: p.description,
         status: p.status,
         towerCount: towers.length,
-        avgCompletion,
         createdAt: p.createdAt,
         updatedAt: p.updatedAt,
       };
@@ -62,7 +72,7 @@ export class ProjectsService {
   async findById(id: string): Promise<ProjectEntity> {
     const project = await this.projectRepository.findOne({
       where: { id },
-      relations: ['towers', 'towers.floors'],
+      relations: ['towers', 'towers.floors', 'updates'],
     });
 
     if (!project) {
@@ -77,16 +87,32 @@ export class ProjectsService {
       });
     }
 
+    if (project.updates) {
+      project.updates.sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
+    }
+
     return project;
   }
 
-  async create(dto: CreateProjectDto): Promise<ProjectEntity> {
+  async create(dto: CreateProjectDto, userId?: string): Promise<{ id: string; name: string; progress: number; location: string }> {
     const project = this.projectRepository.create({
       name: dto.name,
+      location: dto.location || 'Hyderabad',
+      targetCompletion: dto.targetCompletion || null,
       description: dto.description,
       status: dto.status ?? ProjectStatus.PLANNING,
+      progress: 0,
+      createdBy: userId || null,
     });
-    return await this.projectRepository.save(project);
+    const saved = await this.projectRepository.save(project);
+    return {
+      id: saved.id,
+      name: saved.name,
+      location: saved.location,
+      progress: saved.progress,
+    };
   }
 
   async update(id: string, dto: UpdateProjectDto): Promise<ProjectEntity> {
@@ -98,6 +124,35 @@ export class ProjectsService {
     if (dto.isArchived !== undefined) project.isArchived = dto.isArchived;
 
     return await this.projectRepository.save(project);
+  }
+
+  async updateProgress(id: string, progress: number, note?: string, engineerId?: string) {
+    const project = await this.findById(id);
+    project.progress = Math.min(100, Math.max(0, Math.round(progress)));
+
+    if (project.progress === 100) {
+      project.status = ProjectStatus.COMPLETED;
+    } else if (project.progress > 0 && project.status === ProjectStatus.PLANNING) {
+      project.status = ProjectStatus.ACTIVE;
+    }
+
+    await this.projectRepository.save(project);
+
+    const record = this.updateRepository.create({
+      projectId: project.id,
+      engineerId: engineerId || null,
+      progress: project.progress,
+      note: note || '',
+    });
+    await this.updateRepository.save(record);
+
+    return {
+      id: project.id,
+      name: project.name,
+      progress: project.progress,
+      note: record.note,
+      updatedAt: record.createdAt,
+    };
   }
 
   async delete(id: string): Promise<{ success: boolean }> {
