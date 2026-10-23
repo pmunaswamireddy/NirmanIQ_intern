@@ -115,3 +115,11 @@ export async function apiGetProgressUpdates(projectId: string) {
   });
   return handleResponse(res);
 }
+
+export async function apiDeleteProject(id: string) {
+  const res = await fetch(`${API_BASE}/projects/${id}`, {
+    method: 'DELETE',
+    headers: { ...getAuthHeader() },
+  });
+  return handleResponse(res);
+}

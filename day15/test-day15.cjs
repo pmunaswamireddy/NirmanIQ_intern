@@ -137,8 +137,36 @@ async function runTests() {
   assert.strictEqual(historyRes.body[0].note, 'Floor 12 completed');
   console.log('✓ Test 7: Progress updates table logged engineer update with timestamps');
 
+  // Test 8: RolesGuard RBAC - SE blocked from Project Deletion (403 Forbidden)
+  console.log('Running Test 8: RolesGuard blocking SE from project deletion (403 Forbidden)...');
+  const seDeleteRes = await makeRequest(`/projects/${projectId}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${seToken}` },
+  });
+  assert.strictEqual(seDeleteRes.status, 403, 'SE project deletion must be rejected with 403');
+  assert.strictEqual(seDeleteRes.body.error, 'Forbidden', 'Error must be Forbidden');
+  console.log('✓ Test 8: RolesGuard strictly blocked SE from deleting project with 403 Forbidden');
+
+  // Test 9: PM Project Deletion with RolesGuard (200 OK)
+  console.log('Running Test 9: PM deleting project (DELETE /projects/:id)...');
+  const pmDeleteRes = await makeRequest(`/projects/${projectId}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${pmToken}` },
+  });
+  assert.strictEqual(pmDeleteRes.status, 200, 'PM project deletion must succeed with 200');
+  assert.strictEqual(pmDeleteRes.body.success, true, 'Response must return { success: true }');
+  console.log('✓ Test 9: PM successfully deleted project with { success: true }');
+
+  // Test 10: Deleted Project Verification (404 Not Found)
+  console.log('Running Test 10: Verifying deleted project returns 404...');
+  const verifyDeletedRes = await makeRequest(`/projects/${projectId}`, {
+    headers: { Authorization: `Bearer ${pmToken}` },
+  });
+  assert.strictEqual(verifyDeletedRes.status, 404, 'Deleted project must return 404 Not Found');
+  console.log('✓ Test 10: Deleted project correctly returns 404 Not Found');
+
   console.log('\n============================================================');
-  console.log('ALL DAY 15 CHECKPOINT ASSESSMENT #1 TESTS PASSED! (7/7 clean)');
+  console.log('ALL DAY 15 CHECKPOINT ASSESSMENT #1 TESTS PASSED! (10/10 clean)');
   console.log('============================================================\n');
 }
 

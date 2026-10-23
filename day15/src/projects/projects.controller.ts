@@ -74,7 +74,7 @@ export class ProjectsController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.SUPER_ADMIN)
+  @Roles(Role.PROJECT_MANAGER, Role.PM, Role.SUPER_ADMIN, Role.SA)
   @Delete(':id')
   async delete(@Param('id', ParseUUIDPipe) id: string) {
     return await this.projectsService.delete(id);

@@ -49,12 +49,17 @@ From workspace root:
 ```bash
 npm run day15:test
 ```
-Verifies 5/5 core assessment criteria:
+Verifies 10/10 core assessment criteria:
 1. Dual JWT token generation for PM and SE.
 2. `JwtAuthGuard` protection on unauthenticated requests (`401 Unauthorized`).
 3. PM project creation and tower addition (`201 Created`).
 4. `RolesGuard` strict blocking of SE on project creation (`403 Forbidden`).
-5. SE authorized floor progress update (`PATCH /floors/:id/progress`), floor status transition, and tower risk recalibration.
+5. SE authorized project progress update (`PATCH /projects/:id/progress`).
+6. Project listing data consistency and percentage progress calculation.
+7. Audit log creation in progress updates table.
+8. `RolesGuard` strict blocking of SE from deleting projects (`403 Forbidden`).
+9. PM authorized project deletion (`DELETE /projects/:id` returning `{ success: true }`).
+10. Verification of deleted entity returning `404 Not Found`.
 
 ### 2. Start the Backend API (Port 3015)
 ```bash

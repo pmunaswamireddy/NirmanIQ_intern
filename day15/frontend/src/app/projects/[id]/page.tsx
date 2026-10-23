@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../../../store/useAuthStore';
-import { apiGetProject, apiAddTower } from '../../../lib/api';
+import { apiGetProject, apiAddTower, apiDeleteProject } from '../../../lib/api';
 import { getRiskColor } from '../../../lib/utils';
 import {
   Building2,
@@ -16,6 +16,7 @@ import {
   AlertTriangle,
   X,
   CheckCircle2,
+  Trash2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -66,7 +67,26 @@ export default function ProjectDetailPage() {
     });
   };
 
-  const isPM = user?.role === 'PROJECT_MANAGER' || user?.role === 'SUPER_ADMIN';
+  const router = useRouter();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const deleteProjectMutation = useMutation({
+    mutationFn: () => apiDeleteProject(projectId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      toast.success('Project deleted successfully');
+      router.push('/projects');
+    },
+    onError: (err: any) => {
+      toast.error(err.message || 'Failed to delete project');
+    },
+  });
+
+  const isPM =
+    user?.role === 'PROJECT_MANAGER' ||
+    user?.role === 'PM' ||
+    user?.role === 'SUPER_ADMIN' ||
+    user?.role === 'SA';
 
   if (isLoading) {
     return (
@@ -135,13 +155,22 @@ export default function ProjectDetailPage() {
         </div>
 
         {isPM && (
-          <button
-            onClick={() => setShowAddTowerModal(true)}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-medium text-xs transition shadow-lg shadow-sky-600/20 shrink-0"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Tower</span>
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => setShowAddTowerModal(true)}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-medium text-xs transition shadow-lg shadow-sky-600/20"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Tower</span>
+            </button>
+            <button
+              onClick={() => setShowDeleteModal(true)}
+              title="Delete Project (PM only)"
+              className="p-2.5 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 transition"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
         )}
       </div>
 
@@ -323,6 +352,39 @@ export default function ProjectDetailPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm Delete Project Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl relative">
+            <h3 className="text-base font-bold text-slate-100 mb-2">Delete Project?</h3>
+            <p className="text-xs text-slate-400 mb-5 leading-relaxed">
+              Are you sure you want to delete{' '}
+              <span className="font-semibold text-slate-200">
+                "{project.name}"
+              </span>
+              ? All associated towers and floor progress records will be permanently removed.
+            </p>
+            <div className="flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(false)}
+                className="px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-slate-200 transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={deleteProjectMutation.isPending}
+                onClick={() => deleteProjectMutation.mutate()}
+                className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-medium text-xs transition disabled:opacity-50"
+              >
+                {deleteProjectMutation.isPending ? 'Deleting...' : 'Delete Project'}
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../../store/useAuthStore';
-import { apiGetProjects, apiCreateProject } from '../../lib/api';
+import { apiGetProjects, apiCreateProject, apiDeleteProject } from '../../lib/api';
 import {
   Building2,
   Plus,
@@ -15,6 +15,7 @@ import {
   TrendingUp,
   X,
   ShieldAlert,
+  Trash2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -67,7 +68,25 @@ export default function ProjectsPage() {
     });
   };
 
-  const isPM = user?.role === 'PROJECT_MANAGER' || user?.role === 'SUPER_ADMIN';
+  const [deletingProject, setDeletingProject] = useState<{ id: string; name: string } | null>(null);
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => apiDeleteProject(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      toast.success('Project deleted successfully');
+      setDeletingProject(null);
+    },
+    onError: (err: any) => {
+      toast.error(err.message || 'Failed to delete project');
+    },
+  });
+
+  const isPM =
+    user?.role === 'PROJECT_MANAGER' ||
+    user?.role === 'PM' ||
+    user?.role === 'SUPER_ADMIN' ||
+    user?.role === 'SA';
 
   if (!isAuthenticated) {
     return (
@@ -168,17 +187,33 @@ export default function ProjectsPage() {
                   <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 shrink-0">
                     <Building2 className="w-5 h-5" />
                   </div>
-                  <span
-                    className={`text-[11px] font-semibold uppercase px-2 py-0.5 rounded-md border ${
-                      p.status === 'ACTIVE'
-                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                        : p.status === 'COMPLETED'
-                        ? 'bg-sky-500/10 text-sky-400 border-sky-500/30'
-                        : 'bg-slate-800 text-slate-300 border-slate-700'
-                    }`}
-                  >
-                    {p.status}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`text-[11px] font-semibold uppercase px-2 py-0.5 rounded-md border ${
+                        p.status === 'ACTIVE'
+                          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                          : p.status === 'COMPLETED'
+                          ? 'bg-sky-500/10 text-sky-400 border-sky-500/30'
+                          : 'bg-slate-800 text-slate-300 border-slate-700'
+                      }`}
+                    >
+                      {p.status}
+                    </span>
+                    {isPM && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setDeletingProject({ id: p.id, name: p.name });
+                        }}
+                        title="Delete project"
+                        className="p-1 rounded-md text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <h3 className="font-semibold text-slate-100 group-hover:text-sky-400 transition text-base tracking-tight">
@@ -289,6 +324,38 @@ export default function ProjectsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Confirm Delete Project Modal */}
+      {deletingProject && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl relative">
+            <h3 className="text-base font-bold text-slate-100 mb-2">Delete Project?</h3>
+            <p className="text-xs text-slate-400 mb-5 leading-relaxed">
+              Are you sure you want to delete{' '}
+              <span className="font-semibold text-slate-200">
+                "{deletingProject.name}"
+              </span>
+              ? All associated towers and progress logs will be permanently deleted.
+            </p>
+            <div className="flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setDeletingProject(null)}
+                className="px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-slate-200 transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={deleteMutation.isPending}
+                onClick={() => deleteMutation.mutate(deletingProject.id)}
+                className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-medium text-xs transition disabled:opacity-50"
+              >
+                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
           </div>
         </div>
       )}
