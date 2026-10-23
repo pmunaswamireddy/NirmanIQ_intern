@@ -44,15 +44,18 @@ export class ProjectsService {
       const floorAvg =
         totalFloors > 0
           ? Math.round(
-              (allFloors.reduce((acc, f) => acc + Number(f.completionPercentage || 0), 0) /
-                totalFloors) *
-                100,
-            ) / 100
+              allFloors.reduce((acc, f) => acc + Number(f.completionPercentage || 0), 0) /
+                totalFloors,
+            )
           : 0;
 
-      const progress = p.progress !== undefined && p.progress !== null && p.progress > 0
-        ? p.progress
-        : floorAvg;
+      const progress = totalFloors > 0 ? floorAvg : (p.progress ?? 0);
+      let status = p.status;
+      if (totalFloors > 0) {
+        if (progress === 100) status = ProjectStatus.COMPLETED;
+        else if (progress > 0) status = ProjectStatus.ACTIVE;
+        else status = ProjectStatus.PLANNING;
+      }
 
       return {
         id: p.id,
@@ -62,7 +65,7 @@ export class ProjectsService {
         progress,
         avgCompletion: progress,
         description: p.description,
-        status: p.status,
+        status,
         towerCount: towers.length,
         createdAt: p.createdAt,
         updatedAt: p.updatedAt,
@@ -86,6 +89,18 @@ export class ProjectsService {
           t.floors.sort((a, b) => a.floorNumber - b.floorNumber);
         }
       });
+    }
+
+    const allFloors = (project.towers || []).flatMap((t) => t.floors || []);
+    if (allFloors.length > 0) {
+      const avg = Math.round(
+        allFloors.reduce((acc, f) => acc + Number(f.completionPercentage || 0), 0) /
+          allFloors.length,
+      );
+      project.progress = avg;
+      if (avg === 100) project.status = ProjectStatus.COMPLETED;
+      else if (avg > 0) project.status = ProjectStatus.ACTIVE;
+      else project.status = ProjectStatus.PLANNING;
     }
 
     if (project.updates) {

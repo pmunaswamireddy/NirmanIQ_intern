@@ -13,6 +13,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { Role } from '../auth/roles.enum';
+import { CurrentUser } from '../auth/current-user.decorator';
 
 @Controller('floors')
 export class FloorsController {
@@ -25,12 +26,17 @@ export class FloorsController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.SITE_ENGINEER, Role.PROJECT_MANAGER, Role.SUPER_ADMIN)
+  @Roles(Role.SITE_ENGINEER, Role.SE, Role.PROJECT_MANAGER, Role.PM, Role.SUPER_ADMIN, Role.SA)
   @Patch(':id/progress')
   async updateProgress(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateProgressDto,
+    @CurrentUser() user: any,
   ) {
-    return await this.floorsService.updateProgress(id, dto.completionPercentage);
+    return await this.floorsService.updateProgress(
+      id,
+      dto.completionPercentage,
+      user?.id,
+    );
   }
 }

@@ -86,10 +86,10 @@ export class SeedService implements OnApplicationBootstrap {
       const savedTowerA = await this.towerRepo.save(towerA);
 
       const floorsA = [
-        { floorNumber: 1, progressPercentage: 100, status: 'COMPLETED' },
-        { floorNumber: 2, progressPercentage: 100, status: 'COMPLETED' },
-        { floorNumber: 3, progressPercentage: 60, status: 'IN_PROGRESS' },
-        { floorNumber: 4, progressPercentage: 0, status: 'NOT_STARTED' },
+        { floorNumber: 1, completionPercentage: 100, status: 'COMPLETED' },
+        { floorNumber: 2, completionPercentage: 100, status: 'COMPLETED' },
+        { floorNumber: 3, completionPercentage: 60, status: 'IN_PROGRESS' },
+        { floorNumber: 4, completionPercentage: 0, status: 'NOT_STARTED' },
       ].map((f) =>
         this.floorRepo.create({
           ...f,
