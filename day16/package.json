@@ -1,0 +1,27 @@
+{
+  "name": "day16-forms-validation",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "test": "node --experimental-strip-types test-day16.ts"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^3.10.0",
+    "lucide-react": "^0.475.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-hook-form": "^7.54.2",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "typescript": "^5.7.3",
+    "vite": "^8.3.3"
+  }
+}

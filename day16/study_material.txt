@@ -1,0 +1,298 @@
+================================================================================
+NIRMANIQ INTERNSHIP TRAINING HANDBOOK — PHASE 2: ADVANCED FRONTEND
+DAY 16: FORMS, VALIDATION & COMPLEX UI PATTERNS
+Author: Penumuru Madhu Sudhan Reddy
+================================================================================
+
+TABLE OF CONTENTS
+1. Performance Architecture: React Hook Form vs Controlled Inputs
+2. Zod: Runtime Schema Validation & TypeScript Type Inference
+3. Integrating React Hook Form with Zod (@hookform/resolvers/zod)
+4. Multi-Step Form Patterns & Atomic Step Validation
+5. Dynamic Field Arrays with useFieldArray
+6. Cascading & Dependent Dropdown Patterns
+7. Inline-Editable Data Tables & Keyboard Navigation
+8. Accessibility (A11y), ARIA Live Regions & Error Announcements
+9. Comprehensive Mentor Interview Questions & Model Answers
+
+--------------------------------------------------------------------------------
+1. PERFORMANCE ARCHITECTURE: REACT HOOK FORM VS CONTROLLED INPUTS
+--------------------------------------------------------------------------------
+
+In standard React development, forms are frequently built using "Controlled Inputs":
+  const [name, setName] = useState('');
+  <input value={name} onChange={e => setName(e.target.value)} />
+
+THE PROBLEM WITH CONTROLLED INPUTS:
+Every time a user presses a single key on their keyboard:
+1. `onChange` fires.
+2. `setName(e.target.value)` triggers a state update.
+3. The ENTIRE component function re-executes.
+4. All child components re-render (unless memoized with `React.memo`).
+5. On complex forms (e.g. 20+ fields or dynamic arrays), typing stutters because 
+   the browser is calculating virtual DOM diffs on every keystroke.
+
+HOW REACT HOOK FORM SOLVES THIS (UNCONTROLLED INPUTS WITH REFS):
+React Hook Form relies on uncontrolled inputs via HTML refs:
+  const { register } = useForm();
+  <input {...register('name')} />
+
+1. When the user types, the DOM node updates natively at 60 FPS without triggering 
+   a React re-render cycle.
+2. React Hook Form subscribes to events and manages state internally outside the 
+   component render loop.
+3. Only the specific field experiencing an error re-renders when validation fails.
+4. Profiling shows up to 90% fewer re-renders compared to Formik or standard controlled state.
+
+PERFORMANCE COMPARISON MATRIX:
+Metric                    Controlled Inputs (useState)     React Hook Form
+Re-renders on Keystroke   1 per keystroke (Entire Form)    0 (Isolates renders)
+Time to Interactive       Slows down as field count rises  Consistently instantaneous
+Bundle Footprint          Zero (built-in)                  ~8.5 kB minzipped
+Validation Model          Manual custom code               Pluggable schemas (Zod)
+
+--------------------------------------------------------------------------------
+2. ZOD: RUNTIME SCHEMA VALIDATION & TYPESCRIPT TYPE INFERENCE
+--------------------------------------------------------------------------------
+
+TypeScript types are erased during compilation to JavaScript. They cannot validate 
+runtime data received from API responses or user form inputs.
+
+Zod bridges this gap: it defines a single schema that acts as:
+1. A runtime validation engine (catches invalid strings, numbers, formats).
+2. A single source of truth for TypeScript types via `z.infer<T>`.
+
+CORE ZOD PRIMITIVES:
+  import { z } from 'zod';
+
+  export const userSchema = z.object({
+    name: z.string().trim().min(3, "Name must have at least 3 chars"),
+    email: z.string().email("Invalid email format"),
+    age: z.coerce.number().int().min(18, "Must be at least 18"),
+    role: z.enum(['ADMIN', 'ENGINEER', 'MANAGER']),
+  });
+
+  // Infer the compile-time TypeScript interface automatically:
+  export type User = z.infer<typeof userSchema>;
+
+CUSTOM REFINEMENTS (.refine):
+When standard validators are insufficient, `.refine()` allows executing arbitrary 
+business logic:
+
+  const targetDateSchema = z.string().refine((val) => {
+    const d = new Date(val);
+    return !isNaN(d.getTime()) && d > new Date();
+  }, "Target completion date must be set in the future");
+
+FILE VALIDATION WITH ZOD (.refine):
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+  const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+  export const photoSchema = z.custom<File>()
+    .refine(file => file.size <= MAX_FILE_SIZE, "Photo exceeds 10 MB limit")
+    .refine(file => ACCEPTED_TYPES.includes(file.type), "Only JPG/PNG accepted");
+
+TRANSFORMATIONS (.transform):
+Transform data during the parse cycle:
+  const codeSchema = z.string()
+    .trim()
+    .transform(val => val.toUpperCase());
+
+--------------------------------------------------------------------------------
+3. INTEGRATING REACT HOOK FORM WITH ZOD (@hookform/resolvers/zod)
+--------------------------------------------------------------------------------
+
+The official `@hookform/resolvers` package connects Zod directly to React Hook Form's 
+validation pipeline:
+
+  import { useForm } from 'react-hook-form';
+  import { zodResolver } from '@hookform/resolvers/zod';
+  import { projectSchema, ProjectForm } from './schemas';
+
+  export const ProjectFormView = () => {
+    const {
+      register,
+      handleSubmit,
+      formState: { errors, isSubmitting },
+    } = useForm<ProjectForm>({
+      resolver: zodResolver(projectSchema),
+      mode: 'onTouched', // Validates when user blurs out of a field
+    });
+
+    const onSubmit = (data: ProjectForm) => {
+      console.log('Validated Payload:', data);
+    };
+
+    return (
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <input {...register('name')} />
+        {errors.name && <p role="alert">{errors.name.message}</p>}
+        <button type="submit" disabled={isSubmitting}>Submit</button>
+      </form>
+    );
+  };
+
+--------------------------------------------------------------------------------
+4. MULTI-STEP FORM PATTERNS & ATOMIC STEP VALIDATION
+--------------------------------------------------------------------------------
+
+In multi-step wizards (e.g. Create Project: Step 1 -> Step 2 -> Step 3):
+- Users must NOT be allowed to proceed to Step 2 if Step 1 contains validation errors.
+- However, we cannot run full form validation on `onSubmit` because Step 2 fields 
+  have not been filled yet!
+
+SOLUTION: ATOMIC STEP VALIDATION WITH trigger()
+React Hook Form provides `trigger([fieldNames])` to validate only specific fields:
+
+  const handleNext = async () => {
+    if (currentStep === 1) {
+      // Validate only Step 1 fields
+      const isValid = await trigger(['name', 'code', 'location', 'targetDate']);
+      if (isValid) setCurrentStep(2);
+    } else if (currentStep === 2) {
+      // Validate dynamic array
+      const isValid = await trigger(['towers']);
+      if (isValid) setCurrentStep(3);
+    }
+  };
+
+This allows breaking long, intimidating enterprise forms into bite-sized, validated 
+milestones without losing form state between transitions.
+
+--------------------------------------------------------------------------------
+5. DYNAMIC FIELD ARRAYS WITH useFieldArray
+--------------------------------------------------------------------------------
+
+Construction applications frequently require dynamic collections — such as adding an 
+arbitrary number of towers to a project, or adding line items to a bill of materials.
+
+React Hook Form provides the `useFieldArray` hook:
+
+  const { control, register } = useForm<ProjectForm>();
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'towers',
+  });
+
+CRITICAL RULE: KEY ASSIGNMENT
+Always use `field.id` as the React `key`, NEVER the array `index`:
+  {fields.map((field, index) => (
+    <div key={field.id}> {/* CORRECT: Preserves input focus & DOM association */}
+      <input {...register(`towers.${index}.name` as const)} />
+      <button type="button" onClick={() => remove(index)}>Delete</button>
+    </div>
+  ))}
+
+If `key={index}` is used, deleting an item from the middle of the array causes React 
+to reuse the wrong DOM nodes, corrupting input focus and values!
+
+--------------------------------------------------------------------------------
+6. CASCADING & DEPENDENT DROPDOWN PATTERNS
+--------------------------------------------------------------------------------
+
+In a site inspection workflow, options depend hierarchically on previous choices:
+  Tower -> Floor -> Room / Unit
+
+IMPLEMENTATION RULES:
+1. Use `watch('towerId')` to listen to upstream changes.
+2. When the user changes Tower, reset downstream selections (`floorId = ''`, `roomId = ''`).
+3. Disable downstream dropdowns until upstream parents are selected (`disabled={!towerId}`).
+4. Derive available options via standard array filtering:
+
+  const selectedTowerId = watch('towerId');
+  const availableFloors = towers.find(t => t.id === selectedTowerId)?.floors || [];
+
+  const handleTowerChange = (e) => {
+    setValue('towerId', e.target.value);
+    setValue('floorId', ''); // Reset child
+    setValue('roomId', '');  // Reset grandchild
+  };
+
+--------------------------------------------------------------------------------
+7. INLINE-EDITABLE DATA TABLES & KEYBOARD NAVIGATION
+--------------------------------------------------------------------------------
+
+Bulk progress trackers require high-speed data entry: site supervisors cannot wait for 
+dialog modals for every row.
+
+KEYBOARD INTERACTION SPECIFICATION:
+1. Single click on cell -> Enters edit mode, auto-focuses the input (`inputRef.current.focus()`).
+2. 'Enter' key -> Commits changes, validates with Zod, exits edit mode.
+3. 'Escape' key -> Discards changes, reverts to previous value, exits edit mode.
+4. 'Tab' key -> Commits current cell, immediately calculates `(colIndex + 1)` and wraps 
+   to `(rowIndex + 1)` to place the next cell into edit mode.
+5. 'Shift + Tab' -> Moves backward to the previous cell.
+
+SAMPLE KEYBOARD HANDLER:
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleCommit();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      handleCancel();
+    } else if (e.key === 'Tab') {
+      e.preventDefault();
+      handleCommit();
+      moveToNextCell(e.shiftKey);
+    }
+  };
+
+--------------------------------------------------------------------------------
+8. ACCESSIBILITY (A11Y), ARIA LIVE REGIONS & ERROR ANNOUNCEMENTS
+--------------------------------------------------------------------------------
+
+Building enterprise software demands adherence to WCAG 2.1 AA standards:
+
+1. Accessible Form Labels:
+   Always connect `<label htmlFor="field-id">` to `<input id="field-id">`.
+2. Error Announcements:
+   Use `role="alert"` and `aria-live="polite"` on error message containers so 
+   screen readers vocalize the error immediately when validation fails.
+3. Describing Inputs:
+   Link input to helper text and error message via `aria-describedby="hint-id error-id"`.
+4. Invalid Flag:
+   Apply `aria-invalid={!!errors.field}` to indicate failure state programmatically.
+5. Keyboard Focus:
+   Ensure interactive elements have prominent `:focus-visible` rings with at least 
+   a 3:1 contrast ratio against the dark background.
+
+--------------------------------------------------------------------------------
+9. MENTOR INTERVIEW QUESTIONS & MODEL ANSWERS
+--------------------------------------------------------------------------------
+
+Q1: Why choose React Hook Form over Formik or standard useState in an enterprise app?
+Answer:
+"React Hook Form leverages uncontrolled inputs with ref registration. Standard useState 
+forces the entire component and all its children to re-render on every keystroke, causing 
+input lag on large forms. React Hook Form isolates re-renders to only the fields that 
+change or fail validation, cutting rendering cycles by up to 90%."
+
+Q2: How does Zod's .refine() differ from built-in validators like .min() or .email()?
+Answer:
+".refine() allows executing custom synchronous or asynchronous predicate functions. 
+While .min() handles length, .refine() can validate dynamic business constraints — such 
+as verifying a completion date is strictly in the future, checking file size against 
+10 MB buffers, or validating password confirmation matches."
+
+Q3: In useFieldArray, why is it dangerous to use array index as the React key?
+Answer:
+"Array indices are position-dependent. When an item is removed from the middle or 
+re-ordered, the indices shift. React uses keys for virtual DOM reconciliation; if 
+keys shift, React incorrectly reuses existing DOM nodes and internal input states, 
+causing data corruption or focus jumping. Always use field.id generated by useFieldArray."
+
+Q4: How do you prevent invalid data submission across multi-step wizard forms?
+Answer:
+"We split the Zod schema into atomic step schemas (step1Schema, step2Schema) and use 
+React Hook Form's trigger() method. When the user clicks 'Next', we await trigger() on 
+the current step's fields. Only when all current fields pass does the wizard advance. 
+On the final step, the full composite schema validates the complete payload before submit."
+
+Q5: How do you implement accessible inline-editable tables with keyboard shortcuts?
+Answer:
+"We listen for onKeyDown events on active cell inputs. 'Enter' commits and validates 
+against a row schema, 'Escape' reverts state to the original value, and 'Tab' calculates 
+the next cell index across columns and rows, automatically moving edit mode and focus 
+without requiring mouse interaction."
+================================================================================

@@ -71,10 +71,14 @@
     "day15:backend": "npm --prefix day15 run start",
     "day15:frontend": "npm --prefix day15/frontend run dev",
     "day15:test": "npm --prefix day15 run test",
+    "day16:dev": "npm --prefix day16 run dev",
+    "day16:build": "npm --prefix day16 run build",
+    "day16:test": "npm --prefix day16 run test",
     "typecheck": "node ./node_modules/typescript/lib/tsc.js -p tsconfig.json --noEmit",
     "lint": "node ./node_modules/typescript/lib/tsc.js -p tsconfig.json --noEmit",
     "build": "node ./node_modules/typescript/lib/tsc.js -p tsconfig.json --noEmit"
   },
+
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^26.6.4",
