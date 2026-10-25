@@ -22,57 +22,58 @@ export const InlineEditableTable:React.FC=()=>{
     if(editing&&inputRef.current) inputRef.current.focus();
   },[editing]);
 
+  const isEditing=(rowId:string,field:Field)=>editing?.id===rowId&&editing?.field===field;
+
   const startEdit=(row:BulkRow,field:Field)=>{
     setEditing({id:row.id,field});
     setVal(row[field]??'');
     setErr(null);
   };
 
-  const saveEdit=()=>{
-    if(!editing) return;
-    const target=rows.find((r)=>r.id===editing.id);
-    if(!target){setEditing(null);return;}
-    const parsed=editing.field==='progress'?Number(val):val;
-    const updated={...target,[editing.field]:parsed};
-    const res=bulkRowSchema.safeParse(updated);
-    if(!res.success){
-      setErr(res.error.errors[0]?.message||'Invalid value');
-      return;
-    }
-    const updatedRows=rows.map((r)=>(r.id===editing.id?updated:r));
-    setRows(updatedRows);
-    console.log('Bulk Cell Update Report:',{updatedCell:editing.field,row:updated});
-    setEditing(null);
-    setErr(null);
-  };
-
-
   const cancelEdit=()=>{
     setEditing(null);
     setErr(null);
   };
 
-  const handleKeyDown=(e:React.KeyboardEvent)=>{
+  const commitValue=(rowId:string,field:Field,newVal:string|number)=>{
+    const target=rows.find((r)=>r.id===rowId);
+    if(!target){setEditing(null);return false;}
+    const parsed=field==='progress'?(newVal===''?NaN:Number(newVal)):newVal;
+    const updated={...target,[field]:parsed};
+    const res=bulkRowSchema.safeParse(updated);
+    if(!res.success){
+      setErr(res.error.errors[0]?.message||'Invalid value');
+      return false;
+    }
+    const updatedRows=rows.map((r)=>(r.id===rowId?updated:r));
+    setRows(updatedRows);
+    console.log('Bulk Cell Update Report:',{updatedCell:field,row:updated});
+    console.log(updatedRows);
+    setEditing(null);
+    setErr(null);
+    return true;
+  };
+
+  const handleKeyDown=(e:React.KeyboardEvent,rowId:string,field:Field)=>{
     if(e.key==='Enter'){
       e.preventDefault();
-      saveEdit();
+      commitValue(rowId,field,val);
     }else if(e.key==='Escape'){
       e.preventDefault();
       cancelEdit();
     }else if(e.key==='Tab'){
       e.preventDefault();
-      saveEdit();
-      if(!editing) return;
-      const rIdx=rows.findIndex((r)=>r.id===editing.id);
-      const fIdx=FIELDS.indexOf(editing.field);
+      const ok=commitValue(rowId,field,val);
+      if(!ok) return;
+      const rIdx=rows.findIndex((r)=>r.id===rowId);
+      const fIdx=FIELDS.indexOf(field);
       const nextFIdx=fIdx+(e.shiftKey?-1:1);
       let nextR=rIdx,nextF=nextFIdx;
       if(nextFIdx>=FIELDS.length){nextF=0;nextR=(rIdx+1)%rows.length;}
       else if(nextFIdx<0){nextF=FIELDS.length-1;nextR=(rIdx-1+rows.length)%rows.length;}
       const targetR=rows[nextR];
       const targetF=FIELDS[nextF];
-      setEditing({id:targetR.id,field:targetF});
-      setVal(targetR[targetF]??'');
+      startEdit(targetR,targetF);
     }
   };
 
@@ -91,7 +92,6 @@ export const InlineEditableTable:React.FC=()=>{
           Submit Bulk Report
         </button>
       </div>
-
 
       {err&&<div className="p-2 rounded bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs">{err}</div>}
 
@@ -112,31 +112,33 @@ export const InlineEditableTable:React.FC=()=>{
                 <td className="p-3 text-slate-300 font-semibold">{row.towerName} - Floor {row.floorNumber}</td>
 
                 {/* Contractor */}
-                <td className="p-3 cursor-pointer" onClick={()=>startEdit(row,'contractor')}>
-                  {editing?.id===row.id&&editing?.field==='contractor'?(
+                <td className="p-3 cursor-pointer" onClick={()=>{if(!isEditing(row.id,'contractor'))startEdit(row,'contractor');}}>
+                  {isEditing(row.id,'contractor')?(
                     <input
                       ref={inputRef as any}
                       value={val}
+                      onClick={(e)=>e.stopPropagation()}
                       onChange={(e)=>setVal(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      onBlur={saveEdit}
+                      onKeyDown={(e)=>handleKeyDown(e,row.id,'contractor')}
+                      onBlur={()=>commitValue(row.id,'contractor',val)}
                       className="px-2 py-1 bg-slate-950 border border-blue-500 rounded text-white text-xs w-full"
                     />
                   ):<span className="text-slate-200">{row.contractor}</span>}
                 </td>
 
                 {/* Progress */}
-                <td className="p-3 cursor-pointer" onClick={()=>startEdit(row,'progress')}>
-                  {editing?.id===row.id&&editing?.field==='progress'?(
+                <td className="p-3 cursor-pointer" onClick={()=>{if(!isEditing(row.id,'progress'))startEdit(row,'progress');}}>
+                  {isEditing(row.id,'progress')?(
                     <input
                       ref={inputRef as any}
                       type="number"
                       min={0}
                       max={100}
                       value={val}
+                      onClick={(e)=>e.stopPropagation()}
                       onChange={(e)=>setVal(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      onBlur={saveEdit}
+                      onKeyDown={(e)=>handleKeyDown(e,row.id,'progress')}
+                      onBlur={()=>commitValue(row.id,'progress',val)}
                       className="px-2 py-1 bg-slate-950 border border-blue-500 rounded text-white text-xs w-20 font-mono"
                     />
                   ):(
@@ -150,14 +152,19 @@ export const InlineEditableTable:React.FC=()=>{
                 </td>
 
                 {/* Status */}
-                <td className="p-3 cursor-pointer" onClick={()=>startEdit(row,'status')}>
-                  {editing?.id===row.id&&editing?.field==='status'?(
+                <td className="p-3 cursor-pointer" onClick={()=>{if(!isEditing(row.id,'status'))startEdit(row,'status');}}>
+                  {isEditing(row.id,'status')?(
                     <select
                       ref={inputRef as any}
                       value={val}
-                      onChange={(e)=>setVal(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      onBlur={saveEdit}
+                      onClick={(e)=>e.stopPropagation()}
+                      onChange={(e)=>{
+                        const nextVal=e.target.value;
+                        setVal(nextVal);
+                        commitValue(row.id,'status',nextVal);
+                      }}
+                      onKeyDown={(e)=>handleKeyDown(e,row.id,'status')}
+                      onBlur={()=>commitValue(row.id,'status',val)}
                       className="px-2 py-1 bg-slate-950 border border-blue-500 rounded text-white text-xs"
                     >
                       <option value="NOT_STARTED">NOT_STARTED</option>
@@ -165,18 +172,28 @@ export const InlineEditableTable:React.FC=()=>{
                       <option value="COMPLETED">COMPLETED</option>
                       <option value="ON_HOLD">ON_HOLD</option>
                     </select>
-                  ):<span className="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 font-bold">{row.status}</span>}
+                  ):(
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                      row.status==='COMPLETED'?'bg-emerald-950 text-emerald-400 border border-emerald-800':
+                      row.status==='IN_PROGRESS'?'bg-blue-950 text-blue-400 border border-blue-800':
+                      row.status==='ON_HOLD'?'bg-amber-950 text-amber-400 border border-amber-800':
+                      'bg-slate-800 text-slate-400'
+                    }`}>
+                      {row.status}
+                    </span>
+                  )}
                 </td>
 
                 {/* Remarks */}
-                <td className="p-3 cursor-pointer text-slate-400" onClick={()=>startEdit(row,'remarks')}>
-                  {editing?.id===row.id&&editing?.field==='remarks'?(
+                <td className="p-3 cursor-pointer text-slate-400" onClick={()=>{if(!isEditing(row.id,'remarks'))startEdit(row,'remarks');}}>
+                  {isEditing(row.id,'remarks')?(
                     <input
                       ref={inputRef as any}
                       value={val}
+                      onClick={(e)=>e.stopPropagation()}
                       onChange={(e)=>setVal(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      onBlur={saveEdit}
+                      onKeyDown={(e)=>handleKeyDown(e,row.id,'remarks')}
+                      onBlur={()=>commitValue(row.id,'remarks',val)}
                       className="px-2 py-1 bg-slate-950 border border-blue-500 rounded text-white text-xs w-full"
                     />
                   ):<span>{row.remarks||'-'}</span>}
