@@ -43,8 +43,14 @@ export const MultiStepProjectWizard:React.FC=()=>{
   const prevStep=()=>step>1&&setStep(step-1);
 
   const onSubmit=(data:FullProjectForm)=>{
+    console.log('Project Submission Report:',data);
+    console.log(data);
     setSubmitted(data);
   };
+  const onError=(errs:any)=>{
+    console.warn('Form Validation Errors:',errs);
+  };
+
 
   const vals=getValues();
 
@@ -66,7 +72,7 @@ export const MultiStepProjectWizard:React.FC=()=>{
         ))}
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="p-6 bg-slate-900 border border-slate-800 rounded-xl space-y-4 text-xs">
+      <form onSubmit={handleSubmit(onSubmit,onError)} className="p-6 bg-slate-900 border border-slate-800 rounded-xl space-y-4 text-xs">
         {/* STEP 1: Basic Info */}
         {step===1&&(
           <div className="space-y-3">

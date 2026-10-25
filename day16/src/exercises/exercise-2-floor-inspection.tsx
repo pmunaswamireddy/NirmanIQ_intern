@@ -74,7 +74,12 @@ export const FloorInspectionFormView:React.FC=()=>{
   };
 
   const onSubmit=(data:FloorInspectionForm)=>{
+    console.log('Inspection Submission Report:',data);
+    console.log(data);
     setSuccess(data);
+  };
+  const onError=(errs:any)=>{
+    console.warn('Inspection Form Validation Errors:',errs);
   };
 
   return (
@@ -84,7 +89,7 @@ export const FloorInspectionFormView:React.FC=()=>{
         <p className="text-xs text-slate-400">Dependent dropdowns &bull; Max 10MB photo upload with preview</p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="p-6 bg-slate-900 border border-slate-800 rounded-xl space-y-4 text-xs">
+      <form onSubmit={handleSubmit(onSubmit,onError)} className="p-6 bg-slate-900 border border-slate-800 rounded-xl space-y-4 text-xs">
         {/* Tower */}
         <div>
           <label className="block text-slate-300 font-semibold mb-1">Select Tower *</label>

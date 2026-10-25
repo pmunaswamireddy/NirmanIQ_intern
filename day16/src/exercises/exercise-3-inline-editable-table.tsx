@@ -39,10 +39,13 @@ export const InlineEditableTable:React.FC=()=>{
       setErr(res.error.errors[0]?.message||'Invalid value');
       return;
     }
-    setRows(rows.map((r)=>(r.id===editing.id?updated:r)));
+    const updatedRows=rows.map((r)=>(r.id===editing.id?updated:r));
+    setRows(updatedRows);
+    console.log('Bulk Cell Update Report:',{updatedCell:editing.field,row:updated});
     setEditing(null);
     setErr(null);
   };
+
 
   const cancelEdit=()=>{
     setEditing(null);
@@ -75,10 +78,20 @@ export const InlineEditableTable:React.FC=()=>{
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-4 text-left">
-      <div>
-        <h2 className="text-xl font-bold text-white">Exercise 3: Bulk Progress Inline-Editable Table</h2>
-        <p className="text-xs text-slate-400">Click a cell to edit &bull; Tab to next &bull; Enter to save &bull; Esc to cancel</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-xl font-bold text-white">Exercise 3: Bulk Progress Inline-Editable Table</h2>
+          <p className="text-xs text-slate-400">Click a cell to edit &bull; Tab to next &bull; Enter to save &bull; Esc to cancel</p>
+        </div>
+        <button
+          type="button"
+          onClick={()=>{console.log('Bulk Progress Table Report:',rows);console.log(rows);}}
+          className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 rounded text-xs font-bold text-white cursor-pointer"
+        >
+          Submit Bulk Report
+        </button>
       </div>
+
 
       {err&&<div className="p-2 rounded bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs">{err}</div>}
 
