@@ -74,6 +74,9 @@
     "day16:dev": "npm --prefix day16 run dev",
     "day16:build": "npm --prefix day16 run build",
     "day16:test": "npm --prefix day16 run test",
+    "day17:dev": "npm --prefix day17 run dev",
+    "day17:build": "npm --prefix day17 run build",
+    "day17:test": "npm --prefix day17 run test",
     "typecheck": "node ./node_modules/typescript/lib/tsc.js -p tsconfig.json --noEmit",
     "lint": "node ./node_modules/typescript/lib/tsc.js -p tsconfig.json --noEmit",
     "build": "node ./node_modules/typescript/lib/tsc.js -p tsconfig.json --noEmit"

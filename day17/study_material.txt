@@ -1,0 +1,138 @@
+================================================================================
+NIRMANIQ INTERNSHIP — DAY 17: STUDY MATERIAL & DEEP DIVE
+TOPIC: DATA TABLES, PAGINATION & SEARCH (REACT QUERY + URL SYNC)
+================================================================================
+
+1. HAND-BUILT SHADCN TABLES VS HEADLESS TABLE LIBRARIES
+--------------------------------------------------------------------------------
+In enterprise construction applications, data tables display hundreds of daily 
+site activities, material logs, and contractor sign-offs. While libraries like 
+TanStack Table provide powerful abstraction, NirmanIQ prioritizes hand-built 
+tables using semantic HTML and shadcn design primitives for the following reasons:
+- Maximum control over DOM rendering and bundle size.
+- Clean accessibility with native <table>, <thead>, <tbody>, <th>, <tr>, and <td>.
+- Straightforward CSS styling with Tailwind without fighting nested abstraction APIs.
+
+Code Example (Sortable Column Header):
+```tsx
+const renderSortHeader = (field: SortField, label: string) => (
+  <th 
+    onClick={() => toggleSort(field)} 
+    className="p-3 cursor-pointer select-none hover:text-white"
+  >
+    {label} {sort === field ? (order === 'asc' ? '↑' : '↓') : '↕'}
+  </th>
+);
+```
+Output (o/p):
+[Header rendering]: "Date ↓" (when active descending) or "Date ↕" (inactive)
+
+
+2. SERVER-SIDE PAGINATION VS CLIENT-SIDE PAGINATION
+--------------------------------------------------------------------------------
+Client-Side Pagination:
+- Downloads all records (e.g. 100,000 logs) to the browser in one request.
+- Fast subsequent page flips, but catastrophic initial load time and heavy memory use.
+
+Server-Side Pagination (Enterprise Convention):
+- Browser requests only the specific slice needed for the current viewport:
+  GET /api/activity-logs?page=2&pageSize=10&sort=date&order=desc
+- Scales to millions of construction site events with constant O(1) browser memory.
+
+Pagination Math:
+```ts
+const totalRecords = 520;
+const pageSize = 10;
+const totalPages = Math.ceil(totalRecords / pageSize); // 52 pages
+const offset = (page - 1) * pageSize; // Page 2 offset is 10
+const slice = records.slice(offset, offset + pageSize);
+```
+Output (o/p):
+Total records: 520, Total pages: 52. Page 2 returns items 11 through 20.
+
+
+3. TANSTACK REACT QUERY V5: QUERY KEYS & keepPreviousData
+--------------------------------------------------------------------------------
+When navigating between pages or sorting columns, traditional data fetching causes 
+the table to unmount, show a blank loading spinner, and remount (screen flash).
+React Query v5 solves this with `placeholderData: keepPreviousData`:
+
+```tsx
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
+
+export const useActivityLogs = (params: ActivityLogParams) => {
+  return useQuery({
+    queryKey: ['activity-logs', params],
+    queryFn: () => fetchActivityLogs(params),
+    placeholderData: keepPreviousData, // Keeps previous page visible while fetching next
+    staleTime: 5000,
+  });
+};
+```
+Benefits:
+- Query key `['activity-logs', params]` automatically invalidates and fetches when 
+  any filter, page, or sort field changes.
+- `isFetching` can display a subtle "Updating..." indicator while the user continues 
+  reading the current page.
+
+
+4. DEBOUNCED SEARCH PATTERN (useDebounce)
+--------------------------------------------------------------------------------
+Typing into a search input on an enterprise database can trigger a query per keystroke.
+If a user types "reinforcement inspection" (24 chars), 24 distinct API calls would fire.
+The `useDebounce` hook buffers changes and only triggers the parent query after the user 
+pauses typing (e.g. 300ms).
+
+Code:
+```tsx
+export function useDebounce<T>(value: T, delay: number = 300): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  return debouncedValue;
+}
+```
+Output (o/p):
+User types "C-o-n-c-r-e-t-e" across 200ms -> Single query executed 300ms after final keystroke.
+
+
+5. URL SEARCH PARAMS AS SINGLE SOURCE OF TRUTH
+--------------------------------------------------------------------------------
+Enterprise dashboards require shareable URLs so engineers can send direct links to 
+specific filtered views. By synchronizing table state with `window.location.search`:
+- Navigating back or forward (`popstate`) restores exact pagination and filter states.
+- Refreshing the browser preserves active filters.
+
+URL Serialization Pattern:
+```ts
+const sp = new URLSearchParams();
+if (params.page > 1) sp.set('page', String(params.page));
+if (params.status !== 'ALL') sp.set('status', params.status);
+if (params.search) sp.set('search', params.search);
+window.history.pushState(null, '', `?${sp.toString()}`);
+```
+Output (o/p):
+Current URL: http://localhost:3017/?page=2&pageSize=25&status=APPROVED&search=slab
+
+
+6. ROW SELECTION & BATCH TRANSACTIONS (BULK ACTIONS)
+--------------------------------------------------------------------------------
+Site supervisors frequently need to approve or reject multiple inspection records in bulk.
+Architecture:
+1. `selectedIds: string[]` tracks checked row IDs.
+2. Master checkbox supports three states:
+   - Unchecked (0 items on current page selected)
+   - Indeterminate (some items on current page selected)
+   - Checked (all items on current page selected)
+3. Bulk action bar triggers a batch mutation:
+```ts
+const { mutate } = useBatchUpdateStatus();
+mutate({ ids: selectedIds, status: 'APPROVED' }, {
+  onSuccess: () => setSelectedIds([]) // Clears selection on success
+});
+```
+Output (o/p):
+Console: "Bulk Action Applied Report: { status: 'APPROVED', ids: ['act-1', 'act-2'], updatedCount: 2 }"
+================================================================================
